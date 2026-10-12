@@ -52,6 +52,7 @@ https://mrtxda.github.io/nfpa92-smoke-control-calculator/
 
 ## Lịch sử
 
+- **v1.5 (2026-10-12)** — Dọn giao diện tab TCVN·QCVN: form 2 cột, thẻ song song, lưới phụ kiện gọn.
 - **v1.4 (2026-10-12)** — Tab TCVN·QCVN hiển thị trước (mặc định); tăng áp tính theo số tầng, số cửa mở đồng thời, rò lọt khe cửa đóng; kiểm tra lực mở cửa.
 - **v1.3 (2026-10-12)** — Thêm tab TCVN·QCVN: phân loại áp dụng QCVN 06
   PL D.2, lưu lượng khói TCVN 5687 PL H (H.1/H.2/H.3 + rò lọt), cấp bù &
