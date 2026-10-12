@@ -7,7 +7,7 @@ Bảng tính thiết kế sơ bộ hệ thống hút khói — 2 tab:
 
 Mở file `NFPA92_SmokControl_Calculator.html` bằng trình duyệt — không cần
 cài đặt, không cần mạng. Dùng trực tuyến tại:
-https://mrtxda.github.io/nfpa92-smoke-control-calculator/
+https://mrtxda.github.io/smoke-control-calculator/
 
 ## Tab NFPA 92 — phương pháp tính
 
