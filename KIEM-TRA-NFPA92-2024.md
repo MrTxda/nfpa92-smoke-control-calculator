@@ -38,7 +38,26 @@ Phạm vi: toàn bộ công thức, trích dẫn điều khoản, logic kiểm t
 | 16 | Số quạt tối thiểu 2 | ✅ OK | Khuyến nghị thiết kế (dự phòng), không ghi là yêu cầu bắt buộc của tiêu chuẩn |
 | 17 | Biến `pct` không dùng | 🧹 DỌN | Đã xóa |
 
-## 3. Việc chưa làm (ngoài phạm vi bảng tính hiện tại)
+## 3. Bổ sung v1.2 (2026-10-12) — cấp bù theo khối lượng
+
+Phát hiện: v1.1 tính Q_makeup = 90% × Q_exhaust **theo thể tích**, trong khi
+NFPA 92 §4.4.4.1.2 yêu cầu so sánh theo **khối lượng**. Vì khí thải ở T_s
+và khí bù ở T_a (≠ T_s) nên ρ_s ≠ ρ_a — lấy % thể tích cho kết quả sai.
+
+Ví dụ với số mặc định (Q = 5 000 kW, z = 3.2 m, T_a = 30°C):
+ṁ_p = 13.70 kg/s, T_s = 284°C → ρ_s = 0.634, ρ_a = 1.165 kg/m³.
+
+| Cách tính | Q_makeup | Khối lượng cấp bù | So với hút |
+|---|---|---|---|
+| v1.1 (thể tích 90%) | 70 067 m³/h | 22.67 kg/s | **166% — VI PHẠM §4.4.4.1.2** |
+| v1.2 (khối lượng 90%) | 38 103 m³/h | 12.33 kg/s | 90% — ĐẠT |
+
+Đã sửa: ṁ_mk = 0.90 × ṁ_p; Q_mk = ṁ_mk / ρ_a × 3600 (ρ_a tại T_a);
+thêm ρ_a vào bảng tính/KPI/CSV; số quạt, tiết diện ống cấp bù và diện
+tích thông thủy miệng cấp (v ≤ 1.02 m/s, §4.4.4.1.4) tính riêng theo
+thể tích tại T_a.
+
+## 4. Việc chưa làm (ngoài phạm vi bảng tính hiện tại)
 
 - Kiểm tra plugholing / số lượng & khoảng cách miệng hút (§5.6)
 - Cột khói tràn ban công (balcony spill plume, §5.5.2) và cột khói gần tường

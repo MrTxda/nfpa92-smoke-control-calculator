@@ -20,7 +20,7 @@ cài đặt, không cần mạng. Nhấn **TÍNH TOÁN** để xem kết quả, 
 | Nhiệt độ khói | T_s = T_a + ΔT_s | — |
 | Mật độ khói | ρ_s = 353 / (T_s + 273) | khí lý tưởng, áp suất chuẩn |
 | Lưu lượng hút | Q_v = ṁ / ρ_s → Q_ex = Q_v · 3600 | §5.5.1 |
-| Cấp khí bù | Q_makeup = 90% · Q_ex | §4.4.4.1.2 (cấp bù cơ khí < hút) |
+| Cấp khí bù (theo khối lượng) | ṁ_mk = 90% · ṁ_p; Q_mk = ṁ_mk / ρ_a (ρ_a tại T_a) | §4.4.4.1.2 |
 | Công suất quạt | P = Q_v · ΔP / η | — |
 
 ## Các tiêu chí kiểm tra tự động
@@ -37,6 +37,10 @@ cài đặt, không cần mạng. Nhấn **TÍNH TOÁN** để xem kết quả, 
 
 ## Lịch sử rà soát
 
+- **v1.2 (2026-10-12)** — Cấp khí bù chuyển sang tính theo **khối lượng**:
+  ṁ_mk = 90% · ṁ_p, Q_mk = ṁ_mk / ρ_a (ρ_a tại T_a). Thêm thẻ KPI mật độ
+  khí bù, số quạt/tiết diện ống cấp bù riêng, diện tích thông thủy miệng
+  cấp (v ≤ 1.02 m/s).
 - **v1.1 (2026-10-12)** — Rà soát toàn bộ công thức và trích dẫn theo
   NFPA 92:2024. Chi tiết xem `KIEM-TRA-NFPA92-2024.md`.
 

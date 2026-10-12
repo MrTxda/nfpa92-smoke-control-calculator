@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<!-- NFPA92_SmokControl_Calculator v1.1 — rà soát theo NFPA 92:2024 (2026-10-12):
-     - Cấp khí bù: §4.4.4.1 (miệng cấp dưới mặt phân cách lớp khói; cơ khí < hút → mặc định 90%; v ≤ 1.02 m/s)
-     - 200°C: tiêu chí duy trì được theo NFPA 92 Annex (tenability), không phải điều khoản bắt buộc §4.4.3
-     - Độ sâu lớp khói tối thiểu 20%H: §4.5.1.3 | z ≥ 1.8 m trên mặt đi bộ: tiêu chí thiết kế (IBC §909.8.1)
-     - X_c mặc định 0.70: §5.5.1.4 | HRR tham khảo: NFPA 92 Annex B | Quạt chịu nhiệt: NFPA 92 Ch.6 / EN 12101-3 -->
+<!-- NFPA92_SmokControl_Calculator v1.2 — rà soát theo NFPA 92:2024 (2026-10-12):
+     - v1.2: cấp bù tính theo KHỐI LƯỢNG (§4.4.4.1.2): ṁ_mk = 90%·ṁ_p; Q_mk = ṁ_mk/ρ_a (ρ_a tại T_a);
+       thêm ρ_a, số quạt cấp bù riêng, tiết diện ống cấp bù, diện tích miệng cấp (v≤1.02 m/s)
+     - v1.1: sửa trích dẫn §4.4.4.1 (cấp bù), §4.5.1.3 (độ sâu lớp khói 20%H), tenability 200°C theo Annex,
+       NFPA 92 Ch.6/EN 12101-3 (thiết bị chịu nhiệt), NFPA 92 Annex B (HRR) -->
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -786,9 +786,20 @@ function calculate() {
   const Q_v       = m_dot / rho_s;
   const Q_exhaust = Q_v * 3600;
 
-  // Bước 8: Q_makeup — NFPA 92 §4.4.4.1.2: cấp bù cơ khí PHẢI NHỎ HƠN lưu lượng hút (theo khối lượng).
-  // Thực hành phổ biến: cấp bù 85–95%, phần còn lại là rò lọt qua khe cửa/cửa sổ.
-  const Q_makeup = 0.90 * Q_exhaust;
+  // Bước 8 (v1.2): CẤP BÙ THEO KHỐI LƯỢNG — NFPA 92 §4.4.4.1.2
+  // Khí thải ở T_s, khí bù ở T_a (≠ T_s) nên mật độ khác nhau: KHÔNG được lấy % theo thể tích.
+  // Ở trạng thái ổn định, khối lượng hút = khối lượng khói cột khói sinh ra tại mặt phân cách: ṁ_ex = ṁ_p.
+  const rho_a    = 353 / (T_a + 273);   // mật độ khí bù tại T_a (kg/m³)
+  const m_makeup = 0.90 * m_dot;        // khối lượng khí bù = 90% khối lượng hút (85–95% + rò lọt)
+  const Q_v_makeup = m_makeup / rho_a;  // m³/s tại T_a
+  const Q_makeup   = Q_v_makeup * 3600; // m³/h tại T_a
+
+  // Quạt cấp bù (tính theo thể tích tại T_a)
+  const n_makeup     = Math.max(1, Math.ceil(Q_makeup / 30000));
+  const q_per_makeup = Q_makeup / n_makeup;
+
+  // Diện tích thông thủy miệng cấp bù: v ≤ 1.02 m/s (§4.4.4.1.4)
+  const grille_area = Q_v_makeup / 1.02; // m²
 
   // Bước 9: Số quạt (mỗi quạt ~30 000 m³/h khuyến nghị, min 2)
   const fans_per_30k = Math.ceil(Q_exhaust / 30000);
@@ -801,9 +812,12 @@ function calculate() {
 
   // Bước 11: Tiết diện ống (v = 5 m/s)
   const v_duct = 5.0; // m/s
-  const duct_area = Q_v / n_fans / v_duct; // m² mỗi ống
+  const duct_area = Q_v / n_fans / v_duct; // m² mỗi ống hút
   const duct_side = Math.sqrt(duct_area); // gần đúng vuông (m)
   const duct_mm = Math.ceil(duct_side * 1000 / 50) * 50; // làm tròn lên 50mm
+  // Ống cấp bù (v = 5 m/s, theo thể tích tại T_a)
+  const mk_duct_area = Q_v_makeup / n_makeup / v_duct;
+  const mk_duct_mm = Math.ceil(Math.sqrt(mk_duct_area) * 1000 / 50) * 50;
 
   // Kiểm tra
   const chk_z_min = z >= 2.1;
@@ -831,7 +845,7 @@ function calculate() {
       <div style="font-size:0.8rem;color:var(--muted)">
         🕒 Tính lúc: ${new Date().toLocaleTimeString('vi-VN')} · Q = ${Q.toLocaleString()} kW · z = ${z} m
       </div>
-      <button class="btn-export" onclick="exportCSV(${Q_c.toFixed(2)},${z_l.toFixed(3)},${m_dot.toFixed(3)},${T_s.toFixed(2)},${Q_exhaust.toFixed(0)})">
+      <button class="btn-export" onclick="exportCSV(${Q_c.toFixed(2)},${z_l.toFixed(3)},${m_dot.toFixed(3)},${T_s.toFixed(2)},${Q_exhaust.toFixed(0)},${rho_a.toFixed(4)},${m_makeup.toFixed(3)},${Q_makeup.toFixed(0)})">
         📥 Xuất CSV
       </button>
     </div>
@@ -847,8 +861,8 @@ function calculate() {
       <div class="res-card highlight">
         <div class="res-label">Cấp khí bù</div>
         <div class="res-value">${(Q_makeup/1000).toFixed(1)}</div>
-        <div class="res-unit">× 10³ m³/h</div>
-        <div class="res-ref">Q_makeup = 90% hút · §4.4.4.1</div>
+        <div class="res-unit">× 10³ m³/h tại ${T_a}°C</div>
+        <div class="res-ref">ṁ_mk = 90%·ṁ_p = ${m_makeup.toFixed(2)} kg/s · §4.4.4.1.2</div>
       </div>
       <div class="res-card">
         <div class="res-label">Mật độ cháy thiết kế</div>
@@ -881,7 +895,13 @@ function calculate() {
         <div class="res-ref">ρ_s tại z</div>
       </div>
       <div class="res-card">
-        <div class="res-label">Công suất tổng quạt</div>
+        <div class="res-label">Mật độ khí bù (T_a)</div>
+        <div class="res-value">${rho_a.toFixed(3)}</div>
+        <div class="res-unit">kg/m³</div>
+        <div class="res-ref">ρ_a tại ${T_a}°C · §4.4.4.1</div>
+      </div>
+      <div class="res-card">
+        <div class="res-label">Công suất quạt hút</div>
         <div class="res-value">${power_kW.toFixed(1)}</div>
         <div class="res-unit">kW</div>
         <div class="res-ref">η = ${eta}% · ΔP = ${dP} Pa</div>
@@ -1007,6 +1027,15 @@ function calculate() {
             </tr>
             <tr>
               <td class="step-num">8</td>
+              <td>Mật độ khí bù (tại T_a)</td>
+              <td><code>ρ_a</code></td>
+              <td class="formula">353 / (T_a + 273) = 353 / ${(T_a + 273).toFixed(0)}</td>
+              <td class="result-val">${rho_a.toFixed(4)}</td>
+              <td>kg/m³</td>
+              <td class="ref-col">§4.4.4.1</td>
+            </tr>
+            <tr>
+              <td class="step-num">9</td>
               <td>Lưu lượng thể tích hút</td>
               <td><code>Q_v</code></td>
               <td class="formula">ṁ_p / ρ_s</td>
@@ -1015,7 +1044,7 @@ function calculate() {
               <td class="ref-col">§5.5.1</td>
             </tr>
             <tr>
-              <td class="step-num">9</td>
+              <td class="step-num">10</td>
               <td>Lưu lượng hút (m³/h)</td>
               <td><code>Q_ex</code></td>
               <td class="formula">Q_v × 3600</td>
@@ -1024,17 +1053,17 @@ function calculate() {
               <td class="ref-col">§5.5.1</td>
             </tr>
             <tr>
-              <td class="step-num">10</td>
+              <td class="step-num">11</td>
               <td>Lưu lượng cấp khí bù</td>
               <td><code>Q_mk</code></td>
-              <td class="formula">0.90 × Q_exhaust</td>
+              <td class="formula">ṁ_mk = 0.90 × ṁ_p = ${m_makeup.toFixed(2)} kg/s → Q_mk = ṁ_mk / ρ_a × 3600</td>
               <td class="result-val">${Q_makeup.toFixed(0)}</td>
-              <td>m³/h</td>
+              <td>m³/h (tại ${T_a}°C)</td>
               <td class="ref-col">§4.4.4.1.2</td>
             </tr>
             <tr>
-              <td class="step-num">11</td>
-              <td>Công suất quạt</td>
+              <td class="step-num">12</td>
+              <td>Công suất quạt hút</td>
               <td><code>P</code></td>
               <td class="formula">Q_v × ΔP / η = ${Q_v.toFixed(2)} × ${dP} / ${eta/100}</td>
               <td class="result-val">${power_kW.toFixed(2)}</td>
@@ -1067,8 +1096,13 @@ function calculate() {
         </div>
         <div class="check-row pass">
           <span class="check-icon">✅</span>
+          <strong>Cân bằng khối lượng khí bù:</strong>&nbsp;
+          ṁ_cấp = ${m_makeup.toFixed(2)} kg/s = 90% × ṁ_hút (${m_dot.toFixed(2)} kg/s) &lt; ṁ_hút — §4.4.4.1.2 ĐẠT
+        </div>
+        <div class="check-row pass">
+          <span class="check-icon">✅</span>
           <strong>Cấp khí bù:</strong>&nbsp;
-          Miệng cấp dưới mặt phân cách lớp khói (§4.4.4.1.1) · v ≤ 1.02 m/s tại vùng có thể chạm cột khói (§4.4.4.1.4)
+          Miệng cấp dưới mặt phân cách lớp khói (§4.4.4.1.1) · v ≤ 1.02 m/s tại vùng có thể chạm cột khói (§4.4.4.1.4) · diện tích thông thủy ≥ ${grille_area.toFixed(1)} m²
         </div>
         <div class="check-row pass">
           <span class="check-icon">✅</span>
@@ -1100,19 +1134,27 @@ function calculate() {
         </div>
         <div class="device-item">
           <div class="device-name">Số quạt cấp khí bù</div>
-          <div class="device-val">${n_fans} quạt</div>
+          <div class="device-val">${n_makeup} quạt</div>
+        </div>
+        <div class="device-item">
+          <div class="device-name">Lưu lượng mỗi quạt cấp</div>
+          <div class="device-val">${(q_per_makeup/1000).toFixed(1)}k m³/h</div>
         </div>
         <div class="device-item">
           <div class="device-name">Tiết diện ống hút (v=5 m/s)</div>
           <div class="device-val">≈ ${duct_mm} × ${duct_mm} mm</div>
         </div>
         <div class="device-item">
+          <div class="device-name">Tiết diện ống cấp bù (v=5 m/s)</div>
+          <div class="device-val">≈ ${mk_duct_mm} × ${mk_duct_mm} mm</div>
+        </div>
+        <div class="device-item">
           <div class="device-name">Van khói (Fire Damper)</div>
           <div class="device-val">250°C / 2h</div>
         </div>
         <div class="device-item">
-          <div class="device-name">Vận tốc cấp bù tại miệng</div>
-          <div class="device-val">≤ 1.0 m/s</div>
+          <div class="device-name">Diện tích miệng cấp bù (v≤1.02 m/s)</div>
+          <div class="device-val">≥ ${grille_area.toFixed(1)} m²</div>
         </div>
       </div>
     </div>
@@ -1121,7 +1163,7 @@ function calculate() {
     <div style="font-size:0.72rem;color:var(--muted);padding:8px 2px;line-height:1.6;border-top:1px solid var(--border);padding-top:12px;">
       <strong>Tài liệu tham chiếu:</strong> NFPA 92:2024 Standard for Smoke Control Systems ·
       Kết quả dựa trên mô hình Axisymmetric Plume (§5.5.1) ·
-      Phiên bản 1.1 — rà soát theo NFPA 92:2024 ngày 2026-10-12 ·
+      Phiên bản 1.2 — rà soát theo NFPA 92:2024 ngày 2026-10-12 (cấp bù tính theo khối lượng) ·
       Cần kiểm tra thêm: tầm nhìn trong khói, thời gian sơ tán, bố trí miệng hút theo mặt bằng thực tế.
     </div>
 
@@ -1129,7 +1171,7 @@ function calculate() {
 }
 
 // ==================== EXPORT CSV ====================
-function exportCSV(Q_c, z_l, m_dot, T_s, Q_ex) {
+function exportCSV(Q_c, z_l, m_dot, T_s, Q_ex, rho_a, m_mk, Q_mk) {
   const A_f = document.getElementById('A_f').value;
   const H   = document.getElementById('H').value;
   const Q   = document.getElementById('Q').value;
@@ -1158,7 +1200,9 @@ function exportCSV(Q_c, z_l, m_dot, T_s, Q_ex) {
     ['Lưu lượng KL khói', 'ṁ_p', m_dot.toFixed(3), 'kg/s', '§5.5.1'],
     ['Nhiệt độ khói tại z', 'T_s', T_s.toFixed(2), '°C', 'Annex (tenability)'],
     ['Lưu lượng hút', 'Q_exhaust', Q_ex.toFixed(0), 'm³/h', '§5.5.1'],
-    ['Lưu lượng cấp khí bù (90%)', 'Q_makeup', (Q_ex * 0.9).toFixed(0), 'm³/h', '§4.4.4.1.2'],
+    ['Mật độ khí bù tại T_a', 'ρ_a', rho_a.toFixed(4), 'kg/m³', '§4.4.4.1'],
+    ['Khối lượng khí bù (90% ṁ_p)', 'ṁ_mk', m_mk.toFixed(3), 'kg/s', '§4.4.4.1.2'],
+    ['Lưu lượng cấp khí bù', 'Q_makeup', Q_mk.toFixed(0), 'm³/h tại T_a', '§4.4.4.1.2'],
   ];
 
   const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
