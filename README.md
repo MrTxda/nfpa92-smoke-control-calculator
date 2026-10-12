@@ -2,13 +2,8 @@
 
 Bảng tính thiết kế sơ bộ hệ thống hút khói — 2 tab:
 
-- **🔥 NFPA 92**: mô hình cột khói đối xứng trục (axisymmetric plume),
-  NFPA 92:2024 §5.5.1. Mở file, nhấn **TÍNH TOÁN**.
-- **🇻🇳 TCVN · QCVN**: tính toán theo tiêu chuẩn Việt Nam — phân loại
-  trường hợp áp dụng (QCVN 06:2022/BXD + SĐ1:2023, Phụ lục D.2), lưu lượng
-  khói (TCVN 5687:2024 Phụ lục H), cấp bù & tăng áp (Phụ lục G.7,
-  Đ.6.8.6, D.12), khí động ống gió (SMACNA + TCVN 232:1999), checklist
-  QCVN 06 Phụ lục D / TCVN 5687 Điều 7.
+- **🇻🇳 TCVN · QCVN** (mặc định): tính toán theo tiêu chuẩn Việt Nam — xem bảng dưới.
+- **🔥 NFPA 92**: mô hình cột khói đối xứng trục (axisymmetric plume), NFPA 92:2024 §5.5.1.
 
 Mở file `NFPA92_SmokControl_Calculator.html` bằng trình duyệt — không cần
 cài đặt, không cần mạng. Dùng trực tuyến tại:
@@ -39,7 +34,7 @@ https://mrtxda.github.io/nfpa92-smoke-control-calculator/
 | H.3 thoát khói tự nhiên: G1 = 3564·Ad·√[h0(γv−γ)ρv² + 0.7v²ρv²]·Ks | PL H.3 |
 | Rò lọt van đóng: Gv = 40.3·√(Av·ΔP)·n; rò lọt ống Bảng 1: q = C·pt^0.65·10⁻³ | Đ.7.4, Bảng 1 |
 | Cấp bù: Ga = Gsm/(1−n); La = Gsm/ρa; La = Lsm·Ta/Tsm | PL G.7.4 (G.10–G.12) |
-| Tăng áp khoang đệm: Q = 1.3·A_cửa; vùng 20–50 Pa; Bảng G.1 (12.5/25/35/45 Pa) | Đ.6.8.6b, D.12, Bảng G.1 |
+| Tăng áp: Q_mở = N_mở·A·v (v ≥ 1,3) + rò lọt N_đóng cửa (q = Cd·A_khe·√(2ΔP/ρ)); kiểm tra ΔP 20–50 Pa, lực mở cửa ≤ 100 N | Đ.6.8.6, D.12, D.1.6, Bảng G.1 |
 | Khí động ống: Darcy–Weisbach + Haaland (ε = 0.09 mm), De Huebscher; tổn thất cục bộ Σζ·ρv²/2 | SMACNA; TCVN 232:1999 (chế tạo/lắp đặt) |
 
 ## Các tiêu chí kiểm tra tự động (tab NFPA)
@@ -57,6 +52,7 @@ https://mrtxda.github.io/nfpa92-smoke-control-calculator/
 
 ## Lịch sử
 
+- **v1.4 (2026-10-12)** — Tab TCVN·QCVN hiển thị trước (mặc định); tăng áp tính theo số tầng, số cửa mở đồng thời, rò lọt khe cửa đóng; kiểm tra lực mở cửa.
 - **v1.3 (2026-10-12)** — Thêm tab TCVN·QCVN: phân loại áp dụng QCVN 06
   PL D.2, lưu lượng khói TCVN 5687 PL H (H.1/H.2/H.3 + rò lọt), cấp bù &
   tăng áp (PL G.7, Đ.6.8.6, D.12), khí động ống gió SMACNA, checklist

@@ -85,7 +85,17 @@ thể tích tại T_a.
   → 850×600 mm @ 8,17 m/s, 0,76 Pa/m (đẳng ma sát 1,0); đoạn ống 25 m +
   phụ kiện → ΔP = 119 Pa — hợp lý.
 
-## 5. Việc chưa làm (ngoài phạm vi bảng tính hiện tại)
+## 5. Bổ sung v1.4 (2026-10-12) — tab TCVN·QCVN lên trước, tăng áp nâng cấp
+
+- Tab **TCVN·QCVN hiển thị trước (mặc định)**, tab NFPA 92 chuyển sau.
+- Tăng áp thang/khoang đệm tính đầy đủ: Q_mở = N_mở·A_cửa·v (v ≥ 1,3 m/s,
+  Đ.6.8.6b) + rò lọt qua khe N cửa đóng q = Cd·A_khe·√(2ΔP/ρ) (Đ.6.8.6b
+  yêu cầu kể đến rò lọt khe cửa) + dự phòng rò lọt hệ thống; tự kiểm tra
+  ΔP ∈ [20, 50] Pa (D.12) và lực mở cửa F ≈ ΔP·A/2 ≤ 100 N (D.1.6).
+- Kiểm thử: 20 tầng × 2 cửa, mở 2 cửa, ΔP = 30 Pa → Q_quạt = 34 805 m³/h
+  (17 690 qua cửa mở + 12 575 rò lọt 38 cửa đóng), F = 28,3 N — hợp lý.
+
+## 6. Việc chưa làm (ngoài phạm vi bảng tính hiện tại)
 
 
 - Kiểm tra plugholing / số lượng & khoảng cách miệng hút (§5.6)
