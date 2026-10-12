@@ -50,18 +50,6 @@ https://mrtxda.github.io/nfpa92-smoke-control-calculator/
 - **Thiết bị** chịu được nhiệt độ khói tính toán (NFPA 92 Ch.6; cấp
   250°C/2h là thực hành phổ biến theo EN 12101-3)
 
-## Lịch sử
-
-- **v1.5 (2026-10-12)** — Dọn giao diện tab TCVN·QCVN: form 2 cột, thẻ song song, lưới phụ kiện gọn.
-- **v1.4 (2026-10-12)** — Tab TCVN·QCVN hiển thị trước (mặc định); tăng áp tính theo số tầng, số cửa mở đồng thời, rò lọt khe cửa đóng; kiểm tra lực mở cửa.
-- **v1.3 (2026-10-12)** — Thêm tab TCVN·QCVN: phân loại áp dụng QCVN 06
-  PL D.2, lưu lượng khói TCVN 5687 PL H (H.1/H.2/H.3 + rò lọt), cấp bù &
-  tăng áp (PL G.7, Đ.6.8.6, D.12), khí động ống gió SMACNA, checklist
-  QCVN 06 PL D / TCVN 5687 Điều 7.
-- **v1.2 (2026-10-12)** — Cấp khí bù chuyển sang tính theo **khối lượng**:
-  ṁ_mk = 90% · ṁ_p, Q_mk = ṁ_mk / ρ_a (ρ_a tại T_a).
-- **v1.1 (2026-10-12)** — Rà soát toàn bộ công thức và trích dẫn theo
-  NFPA 92:2024. Chi tiết xem `KIEM-TRA-NFPA92-2024.md`.
 
 ## Lưu ý
 
