@@ -7,7 +7,8 @@
   Người lập: Kỹ sư HVAC Phạm Văn Trung
   ───────────────────────────────────────────────────────────
   v1.7 — 2026-10-12: xuất bảng tính Excel (.xlsx) — công thức sống + ghi chú điều khoản
-  Phiên bản v1.7 — 2026-10-12
+  v1.8 — 2026-10-12: công suất quạt chọn cho hút khói / bù khí / tăng áp (P, số quạt, P/quạt)
+  Phiên bản v1.8 — 2026-10-12
   ═══════════════════════════════════════════════════════════
 -->
 <html lang="vi">
@@ -1064,6 +1065,13 @@
               <option value="gv">Đ.7.4b — Rò lọt qua van khói đóng (Gv)</option>
               <option value="leak">Bảng 1 — Rò lọt đường ống</option>
             </select>
+          <div class="form-grid2" style="margin-top:8px">
+            <div class="input-group"><label>🌀 Quạt hút — <span class="sym">η</span> hiệu suất</label>
+              <div class="input-row"><input type="number" id="fan_eta" value="75" min="50" max="95" step="1"><span class="unit-tag">%</span></div></div>
+            <div class="input-group"><label>🌀 Quạt hút — <span class="sym">ΔP</span> tổn thất áp</label>
+              <div class="input-row"><input type="number" id="fan_dp" value="400" min="50" step="10"><span class="unit-tag">Pa</span></div>
+              <span class="hint">lấy từ Module D (ống gió)</span></div>
+          </div>
           </div>
 
           <!-- H.1 -->
@@ -1178,6 +1186,10 @@
             <div class="input-group"><label><span class="sym">n</span> Hệ số mất cân bằng <span class="cite">G.10</span></label>
               <div class="input-row"><input type="number" id="mu_n" value="-0.11" min="-0.3" max="0.3" step="0.01"><span class="unit-tag">—</span></div>
               <span class="hint">−0.11 ≈ cấp 90% (G.7.1: 85–95%)</span></div>
+            <div class="input-group"><label><span class="sym">η</span> Hiệu suất quạt bù</label>
+              <div class="input-row"><input type="number" id="mu_eta" value="75" min="50" max="95" step="1"><span class="unit-tag">%</span></div></div>
+            <div class="input-group"><label><span class="sym">ΔP</span> Tổn thất áp quạt bù</label>
+              <div class="input-row"><input type="number" id="mu_dp" value="300" min="50" step="10"><span class="unit-tag">Pa</span></div></div>
           </div>
           <button class="btn-calc" onclick="tcvn_makeup()">⚡ TÍNH CẤP BÙ</button>
         </div>
@@ -1207,6 +1219,13 @@
           </div>
           <div class="input-group" style="max-width:180px"><label><span class="sym">Cd</span> Hệ số khe cửa</label>
             <div class="input-row"><input type="number" id="pr_cd" value="0.65" min="0.4" max="1" step="0.05"><span class="unit-tag">—</span></div></div>
+          <div class="form-grid2" style="margin-top:4px">
+            <div class="input-group"><label><span class="sym">η</span> Hiệu suất quạt tăng áp</label>
+              <div class="input-row"><input type="number" id="pr_eta" value="75" min="50" max="95" step="1"><span class="unit-tag">%</span></div></div>
+            <div class="input-group"><label><span class="sym">ΔP</span> Tổn thất áp quạt tăng áp</label>
+              <div class="input-row"><input type="number" id="pr_fdp" value="400" min="50" step="10"><span class="unit-tag">Pa</span></div>
+              <span class="hint">gồm ΔP ống + áp suất dư</span></div>
+          </div>
           <button class="btn-calc" onclick="tcvn_press()">⚡ TÍNH TĂNG ÁP</button>
         </div>
       </div>
@@ -1384,6 +1403,8 @@ function calculate() {
   // Bước 10: Công suất quạt (kW)  P = Q_v * dP / (eta/100) / 1000
   const power_kW = (Q_v * dP) / (eta / 100) / 1000;
   const power_per_fan = power_kW / n_fans;
+  const pkw_makeup = (Q_v_makeup * dP) / (eta / 100) / 1000;
+  const pfan_makeup = pkw_makeup / n_makeup;
 
   // Bước 11: Tiết diện ống (v = 5 m/s)
   const v_duct = 5.0; // m/s
@@ -1489,6 +1510,12 @@ function calculate() {
         <div class="res-value">${n_fans}</div>
         <div class="res-unit">quạt · ${(q_per_fan/1000).toFixed(1)}k m³/h/quạt</div>
         <div class="res-ref">Phân bố đều</div>
+      </div>
+      <div class="res-card">
+        <div class="res-label">Công suất quạt bù</div>
+        <div class="res-value">${pkw_makeup.toFixed(1)}</div>
+        <div class="res-unit">kW · ${pfan_makeup.toFixed(1)} kW/quạt</div>
+        <div class="res-ref">${n_makeup} quạt · η = ${eta}% · ΔP = ${dP} Pa</div>
       </div>
     </div>
 
@@ -1741,7 +1768,7 @@ function calculate() {
     <div style="font-size:0.72rem;color:var(--muted);padding:8px 2px;line-height:1.6;border-top:1px solid var(--border);padding-top:12px;">
       <strong>Tài liệu tham chiếu:</strong> NFPA 92:2024 Standard for Smoke Control Systems ·
       Kết quả dựa trên mô hình Axisymmetric Plume (§5.5.1) ·
-      Phiên bản 1.7 — 2026-10-12 (xuất Excel) ·
+      Phiên bản 1.8 — 2026-10-12 (công suất quạt) ·
       Cần kiểm tra thêm: tầm nhìn trong khói, thời gian sơ tán, bố trí miệng hút theo mặt bằng thực tế.
     </div>
 
@@ -1929,6 +1956,20 @@ function interpH1(B,isRes){
     const t=(B-xs[i])/(xs[i+1]-xs[i]);return ys[i]+t*(ys[i+1]-ys[i]);
   }
 }
+/* Công suất quạt: P(kW) = Q(m³/s)·ΔP(Pa)/η/1000 — dùng chung TCVN & NFPA */
+function fanPowerK(Qmh,dp,eta){
+  const P=Qmh/3600*dp/(eta/100)/1000;
+  const n=Math.max(1,Math.ceil(Qmh/30000));
+  return {P,n,per:P/n};
+}
+function fanBlockHTML(title,Qmh,dp,eta,extra){
+  const f=fanPowerK(Qmh,dp,eta);
+  return `<div class="check-row pass" style="margin-top:8px"><span class="check-icon">🌀</span>`
+    +`<div><strong>${title}:</strong> P = <strong>${f.P.toFixed(1)} kW</strong>`
+    +` → chọn <strong>${f.n} quạt</strong> × ${f.per.toFixed(1)} kW/quạt`
+    +`<div style="font-size:0.7rem;color:var(--muted)">P = Q·ΔP/η = ${(Qmh/3600).toFixed(2)} m³/s × ${dp} Pa / ${eta}%`
+    +` · mỗi quạt ~30.000 m³/h${extra||''}</div></div></div>`;
+}
 function tcvn_h1(){
   const g=id=>document.getElementById(id);
   const isRes=g('h1_type').value==='nha-o';
@@ -1938,6 +1979,8 @@ function tcvn_h1(){
   const Kd=ppl>=25?1:0.8, n=interpH1(B,isRes);
   const G1=(isRes?3420:4300)*B*n*Math.pow(H,1.5)*(isRes?1:Kd);
   const rho=353/(Tsm+273), L=G1/rho;
+  const etaF=+g('fan_eta').value||75, dpF=+g('fan_dp').value||400;
+  const fanH1=fanBlockHTML('Công suất quạt hút khói',L,dpF,etaF,' · rò lọt van/ống (Đ.7.4b/Bảng 1) cộng vào Q trước khi chọn quạt');
   g('h_out').innerHTML=`<div class="anim">${EXCEL_BTN}
     <div class="results-grid">
       <div class="res-card highlight"><div class="res-label">Khối lượng khói G1</div><div class="res-value">${(G1/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">${isRes?'H.1a':'H.1b'} · Kd=${Kd} · n=${n.toFixed(3)}</div></div>
@@ -1946,6 +1989,7 @@ function tcvn_h1(){
     <table class="mini-table"><tr><th>Thông số</th><th>Giá trị</th></tr>
     <tr><td>B (rộng cửa)</td><td>${B} m</td></tr><tr><td>H (kẹp 2–2.5)</td><td>${H} m</td></tr>
     <tr><td>Công thức</td><td>G1 = ${isRes?'3420':`4300·Kd`}·B·n·H<sup>1.5</sup></td></tr></table>
+    ${fanH1}
     <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">TCVN 5687:2024 Phụ lục H.1 — hút khói hành lang/sảnh. n nội suy tuyến tính Bảng H.1.</div></div>`;
 }
 function tcvn_h2(){
@@ -1956,12 +2000,15 @@ function tcvn_h2(){
   const Pf=pfIn>0?pfIn:(spr?12:Math.min(12,Math.max(4,0.38*Math.sqrt(A))));
   const G=678.8*Pf*Math.pow(Y,1.5)*Ks;
   const rho=353/(Tsm+273), L=G/rho;
+  const etaF=+g('fan_eta').value||75, dpF=+g('fan_dp').value||400;
+  const fanH2=fanBlockHTML('Công suất quạt hút khói',L,dpF,etaF,' · rò lọt van/ống (Đ.7.4b/Bảng 1) cộng vào Q trước khi chọn quạt');
   const warn=(Pf>12||Y>4)?'<div class="note-box" style="margin-top:8px">⚠️ Pf &gt; 12 m hoặc Y &gt; 4 m → xác định lượng khói theo <b>H.3</b>.</div>':'';
   g('h_out').innerHTML=`<div class="anim">${EXCEL_BTN}
     <div class="results-grid">
       <div class="res-card highlight"><div class="res-label">Khối lượng khói G</div><div class="res-value">${(G/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">H.3 · Pf=${Pf.toFixed(1)} m · Y=${Y} m · Ks=${Ks}</div></div>
       <div class="res-card highlight"><div class="res-label">Lưu lượng thể tích</div><div class="res-value">${(L/1000).toFixed(1)}</div><div class="res-unit">× 10³ m³/h tại ${Tsm}°C</div><div class="res-ref">ρ_sm = ${rho.toFixed(3)} kg/m³</div></div>
     </div>${warn}
+    ${fanH2}
     <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">TCVN 5687:2024 Phụ lục H.2 — G = 678,8·Pf·Y<sup>1.5</sup>·Ks. Pf mặc định: sprinkler → 12 m; ngược lại 0,38√A (kẹp 4–12 m).</div></div>`;
 }
 function tcvn_h3(){
@@ -2008,6 +2055,8 @@ function tcvn_makeup(){
   const Ga=Gsm/(1-n), rho_a=353/(Ta+273), La=Ga/rho_a;
   const rho_sm=353/(Tsm+273), Lsm=Gsm/rho_sm;
   const ratio=La/Lsm*100;
+  const etaM=+g('mu_eta').value||75, dpM=+g('mu_dp').value||300;
+  const fanMu=fanBlockHTML('Công suất quạt cấp bù',La,dpM,etaM);
   g('mu_out').innerHTML=`<div class="anim">${EXCEL_BTN}
     <div class="results-grid">
       <div class="res-card highlight"><div class="res-label">Khối lượng khí bù Ga</div><div class="res-value">${(Ga/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">G.10 · Ga = Gsm/(1−n)</div></div>
@@ -2019,6 +2068,7 @@ function tcvn_makeup(){
     <tr><td>Lsm tại ${Tsm}°C</td><td>${Lsm.toFixed(0)} m³/h</td></tr>
     <tr><td>ρa tại ${Ta}°C</td><td>${rho_a.toFixed(3)} kg/m³</td></tr></table>
     <div class="note-box" style="margin-top:8px">Cấp bù <b>theo khối lượng</b> (G.7.1: 85–95% lượng khói thải; G.7.2: cấp bù cơ khí &lt; khói thải). Cùng nhiệt độ thì La/Lsm = ${(100*(Ta+273)/(Tsm+273)).toFixed(1)}% theo G.12.</div>
+    ${fanMu}
     <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">TCVN 5687:2024 Phụ lục G.7.4.</div></div>`;
 }
 function tcvn_press(){
@@ -2037,6 +2087,8 @@ function tcvn_press(){
   const Qt=(Qopen+Qclosed)*(1+mg/100), Qh=Qt*3600;          // m³/s → m³/h
   // Lực mở cửa (thực hành EN 12101-6): F ≈ ΔP·A/2 ≤ 100 N — QCVN 06 D.1.6
   const F=dP*Ad/2, okP=dP>=20&&dP<=50, okF=F<=100;
+  const etaP=+g('pr_eta').value||75, dpP=+g('pr_fdp').value||400;
+  const fanPr=fanBlockHTML('Công suất quạt tăng áp',Qh,dpP,etaP);
   g('mu_out').innerHTML=`<div class="anim">${EXCEL_BTN}
     <div class="results-grid">
       <div class="res-card highlight"><div class="res-label">Lưu lượng quạt tăng áp</div><div class="res-value">${(Qh/1000).toFixed(1)}</div><div class="res-unit">× 10³ m³/h</div><div class="res-ref">${Qt.toFixed(2)} m³/s · gồm dự phòng ${mg}%</div></div>
@@ -2055,6 +2107,7 @@ function tcvn_press(){
     <tr><td>Cửa mở đồng thời</td><td>N_mở·A_cửa·v</td><td>${(Qopen*3600).toFixed(0)} m³/h</td></tr>
     <tr><td>Rò lọt ${Nclosed} cửa đóng</td><td>N·Cd·A_khe·√(2ΔP/ρ)</td><td>${(Qclosed*3600).toFixed(0)} m³/h</td></tr>
     <tr><td>Tổng (+${mg}%)</td><td></td><td>${Qh.toFixed(0)} m³/h</td></tr></table>
+    ${fanPr}
     <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">TCVN 5687:2024 Đ.6.8.6 (v ≥ 1,3 m/s qua cửa mở; rò lọt khe cửa khi đóng) · QCVN 06:2022 D.12 (20–50 Pa) · D.1.6 (mở được cửa).</div></div>`;
 }
 
@@ -2154,6 +2207,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 </script>
 <script>
+
 /* ============================================================
    XUẤT BẢNG TÍNH EXCEL (.xlsx) — thuần JavaScript, không cần mạng
    - Ô vàng: số liệu nhập (người dùng sửa được)
@@ -2415,6 +2469,13 @@ function buildTCVN(){
     sh.form('B','Mật độ khói','ρsm','353/({h1Tsm}+273)',rho,'kg/m³','ρ = 353/(T+273)','h1rho');
     sh.form('B','Lưu lượng thể tích','L','{h1G1}/{h1rho}',L,'m³/h','L = G/ρ tại Tsm','h1L');
     sh.form('B','Lưu lượng thể tích','V','{h1L}/3600',L/3600,'m³/s','','h1V');
+    const etaF=exNum('fan_eta',75), dpF=exNum('fan_dp',400);
+    const Pfan=L/3600*dpF/(etaF/100)/1000, nfan=Math.max(1,Math.ceil(L/30000));
+    sh.inNum('B','Hiệu suất quạt hút','η',etaF,'%','','fanEta');
+    sh.inNum('B','Tổn thất áp quạt hút','ΔP',dpF,'Pa','lấy từ Module D (ống gió)','fanDp');
+    sh.form('B','CÔNG SUẤT QUẠT HÚT','P','{h1V}*{fanDp}/({fanEta}/100)/1000',Pfan,'kW','P = Q·ΔP/η','fanP');
+    sh.form('B','Số quạt hút','n','MAX(1,CEILING({h1L}/30000,1))',nfan,'quạt','mỗi quạt ~30.000 m³/h','fann',11);
+    sh.form('B','Công suất mỗi quạt','','{fanP}/{fann}',Pfan/nfan,'kW','','fanPq');
   }
   else if(M==='h2'){
     const A=exNum('h2_a',100), spr=exChk('h2_spr'), pfIn=exNum('h2_pf',0),
@@ -2433,6 +2494,13 @@ function buildTCVN(){
     sh.form('B','Khối lượng khói','G','678.8*{h2Pf}*POWER({h2Y},1.5)*{h2Ks}',G,'kg/h','H.2: G = 678,8·Pf·Y^1,5·Ks','h2G');
     sh.form('B','Mật độ khói','ρsm','353/({h2Tsm}+273)',rho,'kg/m³','','h2rho');
     sh.form('B','Lưu lượng thể tích','L','{h2G}/{h2rho}',L,'m³/h','','h2L');
+    const etaF2=exNum('fan_eta',75), dpF2=exNum('fan_dp',400);
+    const Pfan2=L/3600*dpF2/(etaF2/100)/1000, nfan2=Math.max(1,Math.ceil(L/30000));
+    sh.inNum('B','Hiệu suất quạt hút','η',etaF2,'%','','fanEta');
+    sh.inNum('B','Tổn thất áp quạt hút','ΔP',dpF2,'Pa','lấy từ Module D (ống gió)','fanDp');
+    sh.form('B','CÔNG SUẤT QUẠT HÚT','P','{h2L}/3600*{fanDp}/({fanEta}/100)/1000',Pfan2,'kW','P = Q·ΔP/η','fanP');
+    sh.form('B','Số quạt hút','n','MAX(1,CEILING({h2L}/30000,1))',nfan2,'quạt','mỗi quạt ~30.000 m³/h','fann',11);
+    sh.form('B','Công suất mỗi quạt','','{fanP}/{fann}',Pfan2/nfan2,'kW','','fanPq');
     sh.noteRow('B','Lưu ý H.2: Pf > 12 m hoặc Y > 4 m → xác định lượng khói theo H.3.');
   }
   else if(M==='h3'){
@@ -2494,6 +2562,13 @@ function buildTCVN(){
     sh.form('C','Mật độ khói','ρsm','353/({muTsm}+273)',rho_sm,'kg/m³','G.12','murhosm');
     sh.form('C','Lưu lượng khói thải','Lsm','{muGsm}/{murhosm}',Lsm,'m³/h','G.12','muLsm');
     sh.form('C','Tỷ lệ thể tích La/Lsm','', '{muLa}/{muLsm}',La/(Lsm||1),'','G.12: La = Lsm·Ta/Tsm (nhiệt độ tuyệt đối)','muratio',12);
+    const etaM=exNum('mu_eta',75), dpM=exNum('mu_dp',300);
+    const Pmu=La/3600*dpM/(etaM/100)/1000, nmu=Math.max(1,Math.ceil(La/30000));
+    sh.inNum('C','Hiệu suất quạt bù','η',etaM,'%','','muEta');
+    sh.inNum('C','Tổn thất áp quạt bù','ΔP',dpM,'Pa','','muDp');
+    sh.form('C','CÔNG SUẤT QUẠT BÙ','P','{muLa}/3600*{muDp}/({muEta}/100)/1000',Pmu,'kW','P = Q·ΔP/η','muP');
+    sh.form('C','Số quạt bù','n','MAX(1,CEILING({muLa}/30000,1))',nmu,'quạt','','mun',11);
+    sh.form('C','Công suất mỗi quạt','','{muP}/{mun}',Pmu/nmu,'kW','','muPq');
     sh.noteRow('C','Cấp bù THEO KHỐI LƯỢNG (G.7.1: 85–95% lượng khói thải; G.7.2: cấp bù cơ khí < khói thải).');
   }
 
@@ -2531,6 +2606,13 @@ function buildTCVN(){
       (dP>=20&&dP<=50)?'ĐẠT':'KHÔNG ĐẠT','QCVN 06 D.12: ΔP ∈ [20, 50] Pa','prChkP');
     sh.formStr('C','Kiểm tra lực mở cửa','','IF({prF}<=100,"ĐẠT","KHÔNG ĐẠT")',
       F<=100?'ĐẠT':'KHÔNG ĐẠT','QCVN 06 D.1.6: F ≤ 100 N','prChkF');
+    const etaP=exNum('pr_eta',75), dpP=exNum('pr_fdp',400);
+    const Ppr=Qh/3600*dpP/(etaP/100)/1000, npr=Math.max(1,Math.ceil(Qh/30000));
+    sh.inNum('C','Hiệu suất quạt tăng áp','η',etaP,'%','','prEta');
+    sh.inNum('C','Tổn thất áp quạt','ΔP',dpP,'Pa','gồm ΔP ống + áp suất dư','prFdp');
+    sh.form('C','CÔNG SUẤT QUẠT TĂNG ÁP','P','{prQh}/3600*{prFdp}/({prEta}/100)/1000',Ppr,'kW','P = Q·ΔP/η','prP');
+    sh.form('C','Số quạt tăng áp','n','MAX(1,CEILING({prQh}/30000,1))',npr,'quạt','','prn',11);
+    sh.form('C','Công suất mỗi quạt','','{prP}/{prn}',Ppr/npr,'kW','','prPq');
   }
   return sh;
 }
@@ -2657,6 +2739,9 @@ function buildNFPA(){
   sh.form('3','Lưu lượng mỗi quạt bù','','{Qmk}/{nmk}',qmk,'m³/h','','qmk');
   sh.form('3','Diện tích miệng cấp','A','{Qvmk}/1.02',grille,'m²','§4.4.4.1.4 — v ≤ 1,02 m/s','grille');
   sh.form('3','Cạnh ống cấp bù','a','CEILING(SQRT({Qvmk}/{nmk}/5)*1000,50)',mkmm,'mm','v = 5 m/s','mkmm',11);
+  const Pmk=Qvmk*dP/(eta/100)/1000;
+  sh.form('3','Công suất quạt bù','P','{Qvmk}*{dPq}/({eta}/100)/1000',Pmk,'kW','P = Qv·ΔP/η','pkwmk');
+  sh.form('3','Công suất mỗi quạt bù','','{pkwmk}/{nmk}',Pmk/nmk,'kW','','pfanmk');
   sh.section('4','Kiểm tra');
   sh.form('4','Mật độ cháy thiết kế','q','{Q}/{Af}',Q/Af,'kW/m²','q = Q/Af — chỉ tiêu hồ sơ','qd');
   sh.formStr('4','Chiều cao mặt phân cách','','IF({z}>=2.1,"ĐẠT","XEM LẠI")',
@@ -2719,6 +2804,7 @@ function exportExcel(){
 }
 window.exportExcel=exportExcel;
 })();
+
 
 </script>
 </body>
