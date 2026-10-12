@@ -57,7 +57,36 @@ thêm ρ_a vào bảng tính/KPI/CSV; số quạt, tiết diện ống cấp bù
 tích thông thủy miệng cấp (v ≤ 1.02 m/s, §4.4.4.1.4) tính riêng theo
 thể tích tại T_a.
 
-## 4. Việc chưa làm (ngoài phạm vi bảng tính hiện tại)
+
+## 4. Bổ sung v1.3 (2026-10-12) — tab TCVN·QCVN
+
+Đối chiếu văn bản gốc TCVN 5687:2024 (bản PDF, tra cứu 2026-10-12):
+
+- **Phân loại áp dụng**: QCVN 06:2022/BXD + SĐ1:2023, Phụ lục D.2 (a–h)
+  — hành lang/sảnh/phòng/gara; kèm các miễn trừ SĐ1:2023 (nhà F4 ≤ 6 tầng
+  có báo cháy đầu báo khói/chữa cháy tự động; hạng D, E không yêu cầu).
+  Tăng áp & cấp bù theo D.10, D.12 (vùng 20–50 Pa).
+- **Phụ lục H** (tham khảo): H.1 hành lang/sảnh
+  (G1 = 3420·B·n·H^1.5 nhà ở / 4300·B·n·H^1.5·Kd nhà công cộng, n nội suy
+  Bảng H.1); H.2 gian phòng (G = 678,8·Pf·Y^1,5·Ks); H.3 thoát khói tự nhiên
+  qua cửa (G1 = 3564·Ad·√[h0(γv−γ)ρv² + 0,7v²ρv²]·Ks). Đổi kg/h → m³/h theo
+  nhiệt độ khói do người dùng nhập (mặc định 300°C).
+- **Rò lọt**: Đ.7.4b Gv = 40,3·√(Av·ΔP)·n (van đóng); Bảng 1
+  q = C·pt^0,65·10⁻³ m³/s·m² (cấp B cho ống gió).
+- **Cấp bù**: Phụ lục G.7.4 — Ga = Gsm/(1−n) (G.10), La = Gsm/ρa (G.11),
+  La = Lsm·Ta/Tsm (G.12); G.7.1 khuyến nghị 85–95%.
+- **Tăng áp**: v ≥ 1,3 m/s qua cửa mở (Đ.6.8.6b) → Q = 1,3·A_cửa;
+  Bảng G.1 chênh lệch áp suất vùng khói (12,5/25/35/45 Pa).
+- **Khí động ống gió**: SMACNA — Darcy–Weisbach + Haaland (ε = 0,09 mm
+  tôn mạ kẽm), đường kính tương đương Huebscher cho ống chữ nhật,
+  tổn thất cục bộ Σζ·ρv²/2 (bảng 12 phụ kiện); TCVN 232:1999 chỉ quy định
+  chế tạo/lắp đặt/nghiệm thu (không có phần tính khí động).
+- Kiểm thử số 2026-10-12: nội suy Bảng H.1 khớp điểm bảng; ống 15 000 m³/h
+  → 850×600 mm @ 8,17 m/s, 0,76 Pa/m (đẳng ma sát 1,0); đoạn ống 25 m +
+  phụ kiện → ΔP = 119 Pa — hợp lý.
+
+## 5. Việc chưa làm (ngoài phạm vi bảng tính hiện tại)
+
 
 - Kiểm tra plugholing / số lượng & khoảng cách miệng hút (§5.6)
 - Cột khói tràn ban công (balcony spill plume, §5.5.2) và cột khói gần tường

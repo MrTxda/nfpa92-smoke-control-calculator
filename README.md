@@ -1,14 +1,20 @@
 # NFPA 92:2024 — Bảng tính hệ thống hút khói sự cố
 
-Bảng tính thiết kế sơ bộ hệ thống hút khói cơ khí cho không gian lớn
-(atrium, sảnh, TTTM, kho…) theo mô hình **cột khói đối xứng trục
-(axisymmetric plume)** của **NFPA 92:2024 §5.5.1**.
+Bảng tính thiết kế sơ bộ hệ thống hút khói — 2 tab:
+
+- **🔥 NFPA 92**: mô hình cột khói đối xứng trục (axisymmetric plume),
+  NFPA 92:2024 §5.5.1. Mở file, nhấn **TÍNH TOÁN**.
+- **🇻🇳 TCVN · QCVN**: tính toán theo tiêu chuẩn Việt Nam — phân loại
+  trường hợp áp dụng (QCVN 06:2022/BXD + SĐ1:2023, Phụ lục D.2), lưu lượng
+  khói (TCVN 5687:2024 Phụ lục H), cấp bù & tăng áp (Phụ lục G.7,
+  Đ.6.8.6, D.12), khí động ống gió (SMACNA + TCVN 232:1999), checklist
+  QCVN 06 Phụ lục D / TCVN 5687 Điều 7.
 
 Mở file `NFPA92_SmokControl_Calculator.html` bằng trình duyệt — không cần
-cài đặt, không cần mạng. Nhấn **TÍNH TOÁN** để xem kết quả, **Xuất CSV**
-để lưu hồ sơ.
+cài đặt, không cần mạng. Dùng trực tuyến tại:
+https://mrtxda.github.io/nfpa92-smoke-control-calculator/
 
-## Phương pháp tính
+## Tab NFPA 92 — phương pháp tính
 
 | Bước | Công thức | Nguồn |
 |---|---|---|
@@ -21,26 +27,42 @@ cài đặt, không cần mạng. Nhấn **TÍNH TOÁN** để xem kết quả, 
 | Mật độ khói | ρ_s = 353 / (T_s + 273) | khí lý tưởng, áp suất chuẩn |
 | Lưu lượng hút | Q_v = ṁ / ρ_s → Q_ex = Q_v · 3600 | §5.5.1 |
 | Cấp khí bù (theo khối lượng) | ṁ_mk = 90% · ṁ_p; Q_mk = ṁ_mk / ρ_a (ρ_a tại T_a) | §4.4.4.1.2 |
-| Công suất quạt | P = Q_v · ΔP / η | — |
+| Công suất quạt hút | P = Q_v · ΔP / η | — |
 
-## Các tiêu chí kiểm tra tự động
+## Tab TCVN · QCVN — nội dung
+
+| Module | Căn cứ |
+|---|---|
+| Phân loại trường hợp áp dụng hút khói | QCVN 06:2022/BXD + SĐ1:2023, PL D.2 (a–h); tăng áp/cấp bù D.10, D.12 |
+| H.1 hành lang/sảnh: G1 = 3420·B·n·H^1.5 (nhà ở) / 4300·B·n·H^1.5·Kd (công cộng), n nội suy Bảng H.1 | TCVN 5687:2024 PL H.1 |
+| H.2 gian phòng: G = 678.8·Pf·Y^1.5·Ks; Pf = 12 (sprinkler) hoặc 0.38√A (4–12) | PL H.2 |
+| H.3 thoát khói tự nhiên: G1 = 3564·Ad·√[h0(γv−γ)ρv² + 0.7v²ρv²]·Ks | PL H.3 |
+| Rò lọt van đóng: Gv = 40.3·√(Av·ΔP)·n; rò lọt ống Bảng 1: q = C·pt^0.65·10⁻³ | Đ.7.4, Bảng 1 |
+| Cấp bù: Ga = Gsm/(1−n); La = Gsm/ρa; La = Lsm·Ta/Tsm | PL G.7.4 (G.10–G.12) |
+| Tăng áp khoang đệm: Q = 1.3·A_cửa; vùng 20–50 Pa; Bảng G.1 (12.5/25/35/45 Pa) | Đ.6.8.6b, D.12, Bảng G.1 |
+| Khí động ống: Darcy–Weisbach + Haaland (ε = 0.09 mm), De Huebscher; tổn thất cục bộ Σζ·ρv²/2 | SMACNA; TCVN 232:1999 (chế tạo/lắp đặt) |
+
+## Các tiêu chí kiểm tra tự động (tab NFPA)
 
 - **Chiều cao lớp khói sạch** z ≥ 2.1 m khuyến nghị (1.8 m tuyệt đối trên
   mặt đi bộ của lối thoát nạn) — tiêu chí thiết kế NFPA 92 / IBC §909.8.1
 - **Nhiệt độ khói** T_s ≤ 200°C — tiêu chí duy trì được (tenability),
   NFPA 92 Annex
 - **Độ sâu lớp khói** (H − z) ≥ 20% chiều cao H — §4.5.1.3
+- **Cân bằng khối lượng khí bù**: ṁ_cấp = 90%·ṁ_hút < ṁ_hút — §4.4.4.1.2
 - **Cấp khí bù**: miệng cấp dưới mặt phân cách lớp khói (§4.4.4.1.1),
   vận tốc ≤ 1.02 m/s tại vùng có thể chạm cột khói (§4.4.4.1.4)
 - **Thiết bị** chịu được nhiệt độ khói tính toán (NFPA 92 Ch.6; cấp
   250°C/2h là thực hành phổ biến theo EN 12101-3)
 
-## Lịch sử rà soát
+## Lịch sử
 
+- **v1.3 (2026-10-12)** — Thêm tab TCVN·QCVN: phân loại áp dụng QCVN 06
+  PL D.2, lưu lượng khói TCVN 5687 PL H (H.1/H.2/H.3 + rò lọt), cấp bù &
+  tăng áp (PL G.7, Đ.6.8.6, D.12), khí động ống gió SMACNA, checklist
+  QCVN 06 PL D / TCVN 5687 Điều 7.
 - **v1.2 (2026-10-12)** — Cấp khí bù chuyển sang tính theo **khối lượng**:
-  ṁ_mk = 90% · ṁ_p, Q_mk = ṁ_mk / ρ_a (ρ_a tại T_a). Thêm thẻ KPI mật độ
-  khí bù, số quạt/tiết diện ống cấp bù riêng, diện tích thông thủy miệng
-  cấp (v ≤ 1.02 m/s).
+  ṁ_mk = 90% · ṁ_p, Q_mk = ṁ_mk / ρ_a (ρ_a tại T_a).
 - **v1.1 (2026-10-12)** — Rà soát toàn bộ công thức và trích dẫn theo
   NFPA 92:2024. Chi tiết xem `KIEM-TRA-NFPA92-2024.md`.
 
@@ -49,4 +71,5 @@ cài đặt, không cần mạng. Nhấn **TÍNH TOÁN** để xem kết quả, 
 Kết quả mang tính tham khảo kỹ thuật cho giai đoạn thiết kế sơ bộ.
 Cần xác nhận bởi kỹ sư có kinh nghiệm và kiểm tra thêm: tầm nhìn trong
 khói, thời gian sơ tán (ASET/RSET), bố trí miệng hút theo mặt bằng thực
-tế, plugholing/số lượng miệng hút (§5.6).
+tế, plugholing/số lượng miệng hút (§5.6). Checklist QCVN 06 mang tính
+tham khảo — đối chiếu văn bản gốc trước khi thẩm duyệt.

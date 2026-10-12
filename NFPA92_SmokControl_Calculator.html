@@ -1,8 +1,15 @@
 <!DOCTYPE html>
-<!-- NFPA92_SmokControl_Calculator v1.2 — rà soát theo NFPA 92:2024 (2026-10-12):
-     - v1.2: cấp bù tính theo KHỐI LƯỢNG (§4.4.4.1.2): ṁ_mk = 90%·ṁ_p; Q_mk = ṁ_mk/ρ_a (ρ_a tại T_a);
-       thêm ρ_a, số quạt cấp bù riêng, tiết diện ống cấp bù, diện tích miệng cấp (v≤1.02 m/s)
-     - v1.1: sửa trích dẫn §4.4.4.1 (cấp bù), §4.5.1.3 (độ sâu lớp khói 20%H), tenability 200°C theo Annex,
+<!-- NFPA92_SmokControl_Calculator v1.3 — 2026-10-12:
+     TAB NFPA 92:2024 (v1.2): xem ghi chú v1.1/v1.2 bên dưới
+     TAB TCVN·QCVN (mới v1.3):
+     - Phân loại trường hợp áp dụng: QCVN 06:2022/BXD + SĐ1:2023, Phụ lục D.2 (hút khói) / D.10 / D.12 (tăng áp, cấp bù)
+     - Lưu lượng khói: TCVN 5687:2024 Phụ lục H — H.1 (hành lang/sảnh, Bảng H.1 nội suy), H.2 (phòng theo chu vi cháy),
+       H.3 (thoát khói tự nhiên qua cửa), Đ.7.4b (rò lọt van Gv), Bảng 1 (rò lọt ống)
+     - Cấp bù: Phụ lục G.7.4 (G.10/G.11/G.12); tăng áp khoang đệm v≥1.3 m/s (Đ.6.8.6b), vùng 20–50 Pa (D.12), Bảng G.1
+     - Khí động ống gió: SMACNA (Darcy–Weisbach + Haaland, ε=0.09mm; De Huebscher) + ghi chú TCVN 232:1999
+     - Checklist QCVN 06 Phụ lục D / TCVN 5687 Điều 7
+     v1.2: cấp bù theo KHỐI LƯỢNG (§4.4.4.1.2): ṁ_mk = 90%·ṁ_p; Q_mk = ṁ_mk/ρ_a (ρ_a tại T_a)
+     v1.1: sửa trích dẫn §4.4.4.1 (cấp bù), §4.5.1.3 (độ sâu lớp khói 20%H), tenability 200°C theo Annex,
        NFPA 92 Ch.6/EN 12101-3 (thiết bị chịu nhiệt), NFPA 92 Annex B (HRR) -->
 <html lang="vi">
 <head>
@@ -490,6 +497,127 @@
     background: var(--border);
     margin: 4px 0;
   }
+
+  /* ===== TAB NAV ===== */
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .tab-btn {
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.75);
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: #fff; background: rgba(255,255,255,0.12); }
+  .tab-btn.active { background: #fff; color: var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+
+  /* ===== TCVN TAB LAYOUT ===== */
+  .tcvn-body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 1180px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .subtab-nav {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .subtab-btn {
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .subtab-btn:hover { border-color: var(--primary-light); color: var(--primary); }
+  .subtab-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .tcvn-module { display: none; }
+  .tcvn-module.active { display: block; animation: fadeIn 0.3s ease; }
+  .tcvn-grid2 {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .tcvn-grid2 { grid-template-columns: 1fr; } }
+  .form-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .form-card .card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  select.tcvn-select {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+  }
+  select.tcvn-select:focus { border-color: var(--primary-light); background: #fff; }
+  .checkline { display: flex; align-items: flex-start; gap: 8px; font-size: 0.8rem; }
+  .checkline input[type="checkbox"] { margin-top: 3px; accent-color: var(--primary); transform: scale(1.15); }
+  .rule-hit {
+    border-left: 4px solid var(--ok);
+    background: var(--ok-bg);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+  }
+  .rule-miss {
+    border-left: 4px solid var(--border);
+    background: var(--surface);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .rule-clause {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 4px;
+    padding: 1px 7px;
+    margin-right: 6px;
+  }
+  .rule-miss .rule-clause { background: var(--muted); }
+  .mini-table { width: 100%; border-collapse: collapse; font-size: 0.76rem; margin-top: 6px; }
+  .mini-table th { background: #f0f4f8; padding: 6px 8px; text-align: left; font-size: 0.68rem; text-transform: uppercase; color: var(--muted); }
+  .mini-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; font-family: var(--mono); }
+  .note-box {
+    background: #fef9e7;
+    border: 1px solid #f9ca4d;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 0.76rem;
+    line-height: 1.6;
+    color: #7d6608;
+  }
 </style>
 </head>
 <body>
@@ -498,13 +626,19 @@
 <div class="app-header">
   <div>
     <h1>🔥 Hệ thống Hút Khói Sự Cố — Bảng Tính Thiết Kế</h1>
-    <p>Axisymmetric Plume Model · NFPA 92:2024 (Standard for Smoke Control Systems)</p>
+    <p>Axisymmetric Plume Model · NFPA 92:2024 &nbsp;|&nbsp; TCVN 5687:2024 · QCVN 06:2022/BXD</p>
   </div>
-  <div class="header-badge">NFPA 92<br>2024</div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <div class="tab-nav">
+      <button class="tab-btn active" id="tabbtn-nfpa" onclick="switchTab('nfpa')">🔥 NFPA 92</button>
+      <button class="tab-btn" id="tabbtn-tcvn" onclick="switchTab('tcvn')">🇻🇳 TCVN · QCVN</button>
+    </div>
+    <div class="header-badge">NFPA 92<br>2024</div>
+  </div>
 </div>
 
-<!-- BODY -->
-<div class="app-body">
+<!-- BODY NFPA -->
+<div class="app-body" id="tab-nfpa">
 
   <!-- ===== SIDEBAR INPUT ===== -->
   <div class="sidebar">
@@ -742,6 +876,338 @@
   </div>
 
 </div>
+
+<!-- ==================== TAB TCVN · QCVN ==================== -->
+<div id="tab-tcvn" class="tcvn-body" style="display:none">
+
+  <div class="subtab-nav">
+    <button class="subtab-btn active" id="subbtn-classify" onclick="switchMod('classify')">📋 Phân loại áp dụng</button>
+    <button class="subtab-btn" id="subbtn-smoke" onclick="switchMod('smoke')">🔥 Lưu lượng khói (PL.H)</button>
+    <button class="subtab-btn" id="subbtn-makeup" onclick="switchMod('makeup')">💨 Cấp bù · Tăng áp</button>
+    <button class="subtab-btn" id="subbtn-duct" onclick="switchMod('duct')">🔧 Khí động ống gió</button>
+    <button class="subtab-btn" id="subbtn-check" onclick="switchMod('check')">✅ Checklist QCVN 06</button>
+  </div>
+
+  <!-- ===== MODULE A: PHÂN LOẠI ===== -->
+  <div class="tcvn-module active" id="mod-classify">
+    <div class="tcvn-grid2">
+      <div class="form-card">
+        <div class="card-header">🏢 Thông tin công trình</div>
+        <div class="card-body">
+          <div class="input-group">
+            <label>Loại công trình</label>
+            <select class="tcvn-select" id="cx_type">
+              <option value="nha-o">Nhà ở</option>
+              <option value="cong-cong">Nhà công cộng</option>
+              <option value="hon-hop">Nhà hỗn hợp</option>
+              <option value="san-xuat">Nhà sản xuất</option>
+              <option value="kho">Nhà kho</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Chiều cao PCCC của nhà <span class="sym">H</span></label>
+            <div class="input-row"><input type="number" id="cx_h" value="30" min="0" step="1"><span class="unit-tag">m</span></div>
+          </div>
+          <div class="input-group">
+            <label>Số tầng nổi</label>
+            <div class="input-row"><input type="number" id="cx_floors" value="9" min="1" step="1"><span class="unit-tag">tầng</span></div>
+          </div>
+          <div class="checkline"><input type="checkbox" id="cx_basement" checked><span>Có tầng hầm / nửa hầm</span></div>
+          <div class="checkline"><input type="checkbox" id="cx_basecorr"><span>Hành lang hầm liên thông phòng có người làm việc thường xuyên</span></div>
+          <div class="input-group">
+            <label>Chiều dài hành lang điển hình</label>
+            <div class="input-row"><input type="number" id="cx_corrlen" value="25" min="0" step="1"><span class="unit-tag">m</span></div>
+          </div>
+          <div class="checkline"><input type="checkbox" id="cx_corrnat"><span>Hành lang có thông gió tự nhiên khi cháy</span></div>
+          <div class="checkline"><input type="checkbox" id="cx_atrium"><span>Có sảnh thông tầng (atrium)</span></div>
+          <div class="input-group">
+            <label>Chiều cao sảnh thông tầng</label>
+            <div class="input-row"><input type="number" id="cx_atriumh" value="18" min="0" step="1"><span class="unit-tag">m</span></div>
+          </div>
+          <div class="checkline"><input type="checkbox" id="cx_n23" checked><span>Có buồng thang N2 / khoang đệm N3</span></div>
+          <div class="input-group">
+            <label>Hạng nguy hiểm cháy (SX/kho)</label>
+            <select class="tcvn-select" id="cx_hazard">
+              <option value="-">Không áp dụng</option>
+              <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+              <option value="D">D</option><option value="E">E</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Diện tích phòng điển hình</label>
+            <div class="input-row"><input type="number" id="cx_rarea" value="120" min="0" step="10"><span class="unit-tag">m²</span></div>
+          </div>
+          <div class="input-group">
+            <label>Số người trong phòng</label>
+            <div class="input-row"><input type="number" id="cx_rocc" value="60" min="0" step="5"><span class="unit-tag">người</span></div>
+          </div>
+          <div class="checkline"><input type="checkbox" id="cx_com50"><span>Gian thương mại / trưng bày hàng hóa &gt; 50 m²</span></div>
+          <div class="checkline"><input type="checkbox" id="cx_lib50"><span>Thư viện / bảo tàng / triển lãm ≥ 50 m² có chất cháy</span></div>
+          <div class="checkline"><input type="checkbox" id="cx_chg200"><span>Phòng thay đồ / gửi đồ ≥ 200 m²</span></div>
+          <div class="input-group">
+            <label>Gara ô tô, xe máy</label>
+            <select class="tcvn-select" id="cx_garage">
+              <option value="khong">Không có</option>
+              <option value="ngam">Gara ngầm</option>
+              <option value="kin">Gara kín trên mặt đất</option>
+            </select>
+          </div>
+          <div class="checkline"><input type="checkbox" id="cx_f4ex"><span>Nhà nhóm F4 ≤ 6 tầng, có báo cháy đầu báo khói / chữa cháy tự động <i>(miễn trừ SĐ1:2023)</i></span></div>
+          <button class="btn-calc" onclick="tcvn_classify()">📋 PHÂN LOẠI</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-header">📋 Kết quả phân loại — QCVN 06:2022/BXD + SĐ1:2023, Phụ lục D.2</div>
+          <div class="card-body" id="cx_out" style="padding:14px">
+            <div class="empty-state"><div class="big">🏢</div>Nhập thông tin và nhấn <strong>PHÂN LOẠI</strong>.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ===== MODULE B: LƯU LƯỢNG KHÓI PHỤ LỤC H ===== -->
+  <div class="tcvn-module" id="mod-smoke">
+    <div class="tcvn-grid2">
+      <div class="form-card">
+        <div class="card-header">🔥 TCVN 5687:2024 — Phụ lục H</div>
+        <div class="card-body">
+          <div class="input-group">
+            <label>Phương pháp tính</label>
+            <select class="tcvn-select" id="h_method" onchange="h_show()">
+              <option value="h1">H.1 — Hành lang / sảnh (G1)</option>
+              <option value="h2">H.2 — Gian phòng theo chu vi đám cháy (G)</option>
+              <option value="h3">H.3 — Thoát khói tự nhiên qua cửa (G1)</option>
+              <option value="gv">Đ.7.4b — Rò lọt qua van khói đóng (Gv)</option>
+              <option value="leak">Bảng 1 — Rò lọt đường ống</option>
+            </select>
+          </div>
+
+          <!-- H.1 -->
+          <div id="h_f_h1" style="display:flex;flex-direction:column;gap:10px">
+            <div class="input-group">
+              <label>Loại nhà</label>
+              <select class="tcvn-select" id="h1_type"><option value="nha-o">Nhà ở (H.1a)</option><option value="cc">Nhà công cộng (H.1b)</option></select>
+            </div>
+            <div class="input-group"><label><span class="sym">B</span> Rộng cánh cửa lớn nhất (hành lang → thang / ra ngoài)</label>
+              <div class="input-row"><input type="number" id="h1_b" value="1.2" min="0.3" step="0.1"><span class="unit-tag">m</span></div></div>
+            <div class="input-group"><label><span class="sym">H</span> Chiều cao cửa <i style="font-weight:400">(tự kẹp 2–2.5 m)</i></label>
+              <div class="input-row"><input type="number" id="h1_h" value="2.1" min="1" step="0.1"><span class="unit-tag">m</span></div></div>
+            <div class="input-group"><label>Số người thoát qua 1 cửa <i style="font-weight:400">(→ Kd)</i></label>
+              <div class="input-row"><input type="number" id="h1_ppl" value="30" min="1" step="1"><span class="unit-tag">người</span></div></div>
+            <div class="input-group"><label><span class="sym">T_sm</span> Nhiệt độ khói (đổi kg/h → m³/h)</label>
+              <div class="input-row"><input type="number" id="h1_tsm" value="300" min="50" step="10"><span class="unit-tag">°C</span></div></div>
+            <button class="btn-calc" onclick="tcvn_h1()">⚡ TÍNH G1</button>
+          </div>
+
+          <!-- H.2 -->
+          <div id="h_f_h2" style="display:none;flex-direction:column;gap:10px">
+            <div class="input-group"><label><span class="sym">A</span> Diện tích phòng / bể khói</label>
+              <div class="input-row"><input type="number" id="h2_a" value="800" min="10" step="50"><span class="unit-tag">m²</span></div></div>
+            <div class="checkline"><input type="checkbox" id="h2_spr"><span>Có sprinkler (Pf = 12 m)</span></div>
+            <div class="input-group"><label><span class="sym">Pf</span> Chu vi đám cháy <i style="font-weight:400">(trống = tự tính H.4)</i></label>
+              <div class="input-row"><input type="number" id="h2_pf" value="" min="0" step="0.5" placeholder="tự động"><span class="unit-tag">m</span></div></div>
+            <div class="input-group"><label><span class="sym">Y</span> Từ mép dưới vùng khói đến sàn</label>
+              <div class="input-row"><input type="number" id="h2_y" value="2.5" min="1" step="0.1"><span class="unit-tag">m</span></div></div>
+            <div class="input-group"><label><span class="sym">Ks</span> Hệ số</label>
+              <select class="tcvn-select" id="h2_ks"><option value="1.0">1.0 — hút cơ khí</option><option value="1.2">1.2 — hút tự nhiên + sprinkler</option></select></div>
+            <div class="input-group"><label><span class="sym">T_sm</span> Nhiệt độ khói</label>
+              <div class="input-row"><input type="number" id="h2_tsm" value="300" min="50" step="10"><span class="unit-tag">°C</span></div></div>
+            <button class="btn-calc" onclick="tcvn_h2()">⚡ TÍNH G</button>
+          </div>
+
+          <!-- H.3 -->
+          <div id="h_f_h3" style="display:none;flex-direction:column;gap:10px">
+            <div class="note-box">Tính cho <b>thoát khói tự nhiên</b> qua cửa. Diện tích tương đương Ad nhập trực tiếp (chi tiết H.6–H.13).</div>
+            <div class="input-group"><label><span class="sym">Ad</span> Diện tích tương đương các cửa thoát nạn</label>
+              <div class="input-row"><input type="number" id="h3_ad" value="4" min="0.5" step="0.5"><span class="unit-tag">m²</span></div></div>
+            <div class="input-group"><label><span class="sym">Hmax</span> Chiều cao cửa cao nhất (→ h0 = 0.5·Hmax + 0.2)</label>
+              <div class="input-row"><input type="number" id="h3_hmax" value="2.4" min="1" step="0.1"><span class="unit-tag">m</span></div></div>
+            <div class="input-group"><label>Dạng chất cháy</label>
+              <select class="tcvn-select" id="h3_fuel">
+                <option value="khi">Khí / lỏng — γ = 4 N/m³, t = 600°C</option>
+                <option value="ran">Vật rắn — γ = 5 N/m³, t = 450°C</option>
+                <option value="soi">Sợi / hành lang — γ = 6 N/m³, t = 300°C</option>
+              </select></div>
+            <div class="input-group"><label>Nhiệt độ không khí ngoài <span class="sym">tv</span></label>
+              <div class="input-row"><input type="number" id="h3_tv" value="35" min="0" step="1"><span class="unit-tag">°C</span></div></div>
+            <div class="input-group"><label>Vận tốc gió <i style="font-weight:400">(≤1 → lấy 0; tối đa 5)</i></label>
+              <div class="input-row"><input type="number" id="h3_v" value="0" min="0" max="5" step="0.5"><span class="unit-tag">m/s</span></div></div>
+            <div class="input-group"><label><span class="sym">Ks</span> Hệ số</label>
+              <select class="tcvn-select" id="h3_ks"><option value="1.0">1.0 — hút cơ khí</option><option value="1.2">1.2 — hút tự nhiên + sprinkler</option></select></div>
+            <button class="btn-calc" onclick="tcvn_h3()">⚡ TÍNH G1</button>
+          </div>
+
+          <!-- 7.4b -->
+          <div id="h_f_gv" style="display:none;flex-direction:column;gap:10px">
+            <div class="note-box">Rò lọt qua van khói ở trạng thái đóng: <b>Gv = 40,3·√(Av·ΔP)·n</b> (7.4b).</div>
+            <div class="input-group"><label><span class="sym">Av</span> Diện tích tiết diện van</label>
+              <div class="input-row"><input type="number" id="gv_av" value="0.5" min="0.05" step="0.05"><span class="unit-tag">m²</span></div></div>
+            <div class="input-group"><label><span class="sym">ΔP</span> Chênh áp hai phía van</label>
+              <div class="input-row"><input type="number" id="gv_dp" value="300" min="10" step="10"><span class="unit-tag">Pa</span></div></div>
+            <div class="input-group"><label><span class="sym">n</span> Số van đóng</label>
+              <div class="input-row"><input type="number" id="gv_n" value="2" min="1" step="1"><span class="unit-tag">van</span></div></div>
+            <button class="btn-calc" onclick="tcvn_gv()">⚡ TÍNH Gv</button>
+          </div>
+
+          <!-- Bảng 1 -->
+          <div id="h_f_leak" style="display:none;flex-direction:column;gap:10px">
+            <div class="note-box">Rò lọt đường ống: <b>q = C·pt^0,65·10⁻³</b> (m³/s·m²). Cấp B áp dụng cho đường ống gió.</div>
+            <div class="input-group"><label>Cấp độ kín (Bảng 1)</label>
+              <select class="tcvn-select" id="lk_cls">
+                <option value="0.027">A — thiết bị (C = 0.027)</option>
+                <option value="0.009" selected>B — ống gió (C = 0.009)</option>
+                <option value="0.003">C — ống áp cao (C = 0.003)</option>
+                <option value="0.001">D — đặc biệt (C = 0.001)</option>
+              </select></div>
+            <div class="input-group"><label><span class="sym">pt</span> Áp suất tĩnh trong ống</label>
+              <div class="input-row"><input type="number" id="lk_pt" value="400" min="10" step="10"><span class="unit-tag">Pa</span></div></div>
+            <div class="input-group"><label>Diện tích bề mặt ống</label>
+              <div class="input-row"><input type="number" id="lk_area" value="120" min="1" step="5"><span class="unit-tag">m²</span></div></div>
+            <button class="btn-calc" onclick="tcvn_leak()">⚡ TÍNH RÒ LỌT</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-header">📊 Kết quả — TCVN 5687:2024 Phụ lục H</div>
+          <div class="card-body" id="h_out" style="padding:14px">
+            <div class="empty-state"><div class="big">🔥</div>Chọn phương pháp và nhấn tính.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ===== MODULE C: CẤP BÙ · TĂNG ÁP ===== -->
+  <div class="tcvn-module" id="mod-makeup">
+    <div class="tcvn-grid2">
+      <div class="form-card">
+        <div class="card-header">💨 Cấp bù & tăng áp — TCVN 5687:2024</div>
+        <div class="card-body">
+          <div class="section-title">Cấp khí bù (Phụ lục G.7.4)</div>
+          <div class="input-group"><label><span class="sym">Gsm</span> Khối lượng khói thải</label>
+            <div class="input-row"><input type="number" id="mu_gsm" value="49000" min="100" step="1000"><span class="unit-tag">kg/h</span></div>
+            <span class="hint">= G1/G từ Phụ lục H</span></div>
+          <div class="input-group"><label><span class="sym">Ta</span> Nhiệt độ không khí cấp</label>
+            <div class="input-row"><input type="number" id="mu_ta" value="35" min="0" step="1"><span class="unit-tag">°C</span></div></div>
+          <div class="input-group"><label><span class="sym">Tsm</span> Nhiệt độ khói thải</label>
+            <div class="input-row"><input type="number" id="mu_tsm" value="300" min="50" step="10"><span class="unit-tag">°C</span></div></div>
+          <div class="input-group"><label><span class="sym">n</span> Hệ số mất cân bằng <i style="font-weight:400">(âm = cấp thiếu; −0.3…0.3)</i></label>
+            <div class="input-row"><input type="number" id="mu_n" value="-0.11" min="-0.3" max="0.3" step="0.01"><span class="unit-tag">—</span></div>
+            <span class="hint">n = −0.11 ≈ cấp 90% (khuyến nghị G.7.1: 85–95%)</span></div>
+          <button class="btn-calc" onclick="tcvn_makeup()">⚡ TÍNH CẤP BÙ</button>
+          <div class="divider"></div>
+          <div class="section-title">Tăng áp khoang đệm (Đ.6.8.6b)</div>
+          <div class="input-group"><label><span class="sym">A_cửa</span> Diện tích cửa mở (v ≥ 1.3 m/s)</label>
+            <div class="input-row"><input type="number" id="pr_adoor" value="1.89" min="0.5" step="0.05"><span class="unit-tag">m²</span></div>
+            <span class="hint">VD: cửa 0.9 × 2.1 m = 1.89 m²</span></div>
+          <button class="btn-calc" onclick="tcvn_press()">⚡ TÍNH TĂNG ÁP</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-header">📊 Kết quả cấp bù · tăng áp</div>
+          <div class="card-body" id="mu_out" style="padding:14px">
+            <div class="empty-state"><div class="big">💨</div>Nhập thông số và nhấn tính.</div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-header">📌 Vùng yêu cầu áp suất dư 20–50 Pa (QCVN 06 D.12)</div>
+          <div class="card-body" style="padding:14px;font-size:0.8rem;line-height:1.8">
+            • Buồng thang bộ N2 · Khoang đệm ngăn cháy tại cửa vào thang N2/N3<br>
+            • Khoang đệm tại cửa vào sảnh thông tầng từ tầng hầm/nửa hầm<br>
+            • Khoang đệm ngăn cách gara với đường dốc gara ngầm<br>
+            • Sảnh thang máy tầng hầm/nửa hầm · Hành lang chung được hút khói trực tiếp<br>
+            • Phòng vùng an toàn · Giếng thang máy<br>
+            <span style="color:var(--muted)">Áp suất dư trên cửa đóng của lối thoát nạn ≤ 50 Pa (tác dụng đồng thời hút + cấp).</span>
+            <table class="mini-table">
+              <tr><th>Loại công trình (Bảng G.1)</th><th>Trần (m)</th><th>ΔP min (Pa)</th></tr>
+              <tr><td>Không sprinkler</td><td>bất kỳ</td><td>12.5</td></tr>
+              <tr><td rowspan="3">Có sprinkler</td><td>2.745</td><td>25</td></tr>
+              <tr><td>4.575</td><td>35</td></tr>
+              <tr><td>6.405</td><td>45</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODULE D: KHÍ ĐỘNG ỐNG GIÓ ===== -->
+  <div class="tcvn-module" id="mod-duct">
+    <div class="tcvn-grid2">
+      <div class="form-card">
+        <div class="card-header">🔧 Khí động ống gió — SMACNA</div>
+        <div class="card-body">
+          <div class="section-title">1. Chọn tiết diện ống</div>
+          <div class="input-group"><label><span class="sym">Q</span> Lưu lượng</label>
+            <div class="input-row"><input type="number" id="du_q" value="15000" min="100" step="500"><span class="unit-tag">m³/h</span></div></div>
+          <div class="input-group"><label>Tiết diện</label>
+            <select class="tcvn-select" id="du_shape"><option value="rect">Chữ nhật</option><option value="round">Tròn</option></select></div>
+          <div class="input-group"><label>Phương pháp</label>
+            <select class="tcvn-select" id="du_method">
+              <option value="friction">Đẳng ma sát (Δp/L mục tiêu)</option>
+              <option value="velocity">Vận tốc (v mục tiêu)</option>
+            </select></div>
+          <div class="input-group"><label>Mục tiêu</label>
+            <div class="input-row"><input type="number" id="du_target" value="1.0" min="0.2" step="0.1"><span class="unit-tag" id="du_target_u">Pa/m</span></div>
+            <span class="hint">Đẳng ma sát: 0.8–1.2 Pa/m · Vận tốc: ống chính 6–10, nhánh 4–6 m/s</span></div>
+          <div class="input-group"><label>Tỷ lệ cạnh W/H (chữ nhật)</label>
+            <div class="input-row"><input type="number" id="du_ratio" value="1.5" min="1" max="4" step="0.1"><span class="unit-tag">—</span></div></div>
+          <button class="btn-calc" onclick="duct_size()">⚡ CHỌN ỐNG</button>
+          <div class="divider"></div>
+          <div class="section-title">2. Tổn thất đoạn ống</div>
+          <div class="input-group"><label>Kích thước ống đã chọn</label>
+            <div class="input-row"><input type="text" id="du_size" value="800x500" style="font-family:var(--mono)"><span class="unit-tag">mm</span></div>
+            <span class="hint">Nhập dạng WxH (chữ nhật) hoặc D (tròn)</span></div>
+          <div class="input-group"><label>Chiều dài đoạn ống</label>
+            <div class="input-row"><input type="number" id="du_len" value="25" min="1" step="1"><span class="unit-tag">m</span></div></div>
+          <div id="du_fit"></div>
+          <button class="btn-calc" onclick="duct_dp()">⚡ TÍNH ΔP ĐOẠN ỐNG</button>
+          <div class="note-box" style="margin-top:4px">TCVN 232:1999 — chế tạo/lắp đặt: sai số cạnh ≤300 mm: ±1 mm, &gt;300 mm: ±2 mm; ngoặt tròn R = (1–1.5)D; chạc ba góc kẹp 15–60°; ngoặt chữ nhật A ≥ 500 mm đặt lá hướng dòng.</div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-header">📊 Kết quả khí động</div>
+          <div class="card-body" id="du_out" style="padding:14px">
+            <div class="empty-state"><div class="big">🔧</div>Nhập thông số và nhấn tính.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODULE E: CHECKLIST ===== -->
+  <div class="tcvn-module" id="mod-check">
+    <div class="card">
+      <div class="card-header">✅ Checklist thiết kế — QCVN 06:2022/BXD + SĐ1:2023 (Phụ lục D) · TCVN 5687:2024 (Điều 7)</div>
+      <div class="card-body" style="padding:16px;font-size:0.82rem;line-height:1.9">
+        <div class="section-title">Bố trí hệ thống (D.1 / D.5 / Đ.7)</div>
+        ☐ Hệ thống hút khói độc lập cho từng khoang cháy (D.1.5) — ngoại trừ tăng áp thang/giếng liên khoang và sảnh thông tầng/hành lang thông tầng không ngăn chia<br>
+        ☐ Cấp bù chỉ dùng kèm hút khói; ΔP trên cửa thoát nạn đảm bảo mở được (D.1.6)<br>
+        ☐ Hút khói hành lang riêng với hút khói phòng (D.5)<br>
+        ☐ Phòng &gt; 3 000 m² chia vùng khói ≤ 3 000 m²; 1 cửa thu khói ≤ 1 000 m² (Đ.7.6, Đ.7.8c)<br>
+        ☐ Không dùng chung hệ thống cho các gian nhóm nguy hiểm cháy khác nhau (D.1.6)<br>
+        <div class="section-title" style="margin-top:10px">Cửa thu khói (D.6 · Đ.7.5)</div>
+        ☐ Đặt dưới trần hành lang/sảnh, không thấp hơn dạ cửa; cho phép qua ống nhánh<br>
+        ☐ Chiều dài hành lang / 1 cửa thu: ≤ 45 m (thẳng) · ≤ 30 m (gấp khúc) · ≤ 20 m (vòng khép kín)<br>
+        <div class="section-title" style="margin-top:10px">Ống gió &amp; thiết bị (D.9 · Đ.7.8–7.9)</div>
+        ☐ Vật liệu không cháy; giới hạn chịu lửa: <b>EI 120</b> (ngoài khoang cháy) · <b>EI 60</b> (gara kín trong khoang) · <b>EI 45</b> (ống đứng hút trực tiếp) · <b>EI 30</b> (còn lại)<br>
+        ☐ <i>SĐ1:2023:</i> miễn GHCL khi ống thép mạ kẽm ≥ 1.2 mm + có sprinkler<br>
+        ☐ Quạt hút chọn theo nhiệt độ tính toán: 0.5h@200°C · 0.5h@300°C · 1h@300°C · 1h@400°C · 1h@600°C · 1.5h@600°C<br>
+        ☐ Không nối quạt bằng ống mềm (trừ loại vật liệu không cháy) — Đ.7.8a<br>
+        <div class="section-title" style="margin-top:10px">Xả khói ra ngoài (D.9 · Đ.7.8d)</div>
+        ☐ Lên mái: cách cửa hút khí cấp ≥ <b>5 m</b>; ống xả cao ≥ 2 m nếu mái cháy<br>
+        ☐ Qua tường: cách ô cửa ≥ <b>5 m</b> (ngang + đứng), cao hơn mặt đất &gt; 2 m; ≥ 20 m/s được giảm khoảng cách<br>
+        ☐ Giếng xả tách biệt dưới đất: cách tường có cửa/cửa hút ≥ <b>15 m</b><br>
+        ☐ Cửa lấy khí cấp cách cửa xả khói ≥ <b>5 m</b> (Đ.6.8.6d)<br>
+        <div class="note-box" style="margin-top:10px">Checklist mang tính tham khảo — đối chiếu văn bản gốc trước khi thẩm duyệt. Cho phép thay đổi theo D.1.7 trên cơ sở luận chứng kỹ thuật (tiêu chuẩn được phép áp dụng).</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tab-tcvn -->
 
 <script>
 // ==================== CALCULATION ENGINE ====================
@@ -1163,7 +1629,7 @@ function calculate() {
     <div style="font-size:0.72rem;color:var(--muted);padding:8px 2px;line-height:1.6;border-top:1px solid var(--border);padding-top:12px;">
       <strong>Tài liệu tham chiếu:</strong> NFPA 92:2024 Standard for Smoke Control Systems ·
       Kết quả dựa trên mô hình Axisymmetric Plume (§5.5.1) ·
-      Phiên bản 1.2 — rà soát theo NFPA 92:2024 ngày 2026-10-12 (cấp bù tính theo khối lượng) ·
+      Phiên bản 1.3 — 2026-10-12 (thêm tab TCVN·QCVN; cấp bù NFPA tính theo khối lượng) ·
       Cần kiểm tra thêm: tầm nhìn trong khói, thời gian sơ tán, bố trí miệng hút theo mặt bằng thực tế.
     </div>
 
@@ -1257,6 +1723,298 @@ window.addEventListener('load', calculate);
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') calculate();
 });
+</script>
+<script>
+// ==================== TAB TCVN · QCVN ====================
+function switchTab(name){
+  document.getElementById('tab-nfpa').style.display = name==='nfpa' ? '' : 'none';
+  document.getElementById('tab-tcvn').style.display = name==='tcvn' ? '' : 'none';
+  document.getElementById('tabbtn-nfpa').classList.toggle('active', name==='nfpa');
+  document.getElementById('tabbtn-tcvn').classList.toggle('active', name==='tcvn');
+  window.scrollTo(0,0);
+}
+function switchMod(name){
+  document.querySelectorAll('.tcvn-module').forEach(m=>m.classList.remove('active'));
+  document.getElementById('mod-'+name).classList.add('active');
+  document.querySelectorAll('.subtab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('subbtn-'+name).classList.add('active');
+}
+
+// ---------- MODULE A: Phân loại (QCVN 06 Phụ lục D.2) ----------
+function tcvn_classify(){
+  const g = id => document.getElementById(id);
+  const type=g('cx_type').value, hP=+g('cx_h').value||0, fl=+g('cx_floors').value||0;
+  const base=g('cx_basement').checked, baseCorr=g('cx_basecorr').checked;
+  const clen=+g('cx_corrlen').value||0, cnat=g('cx_corrnat').checked;
+  const atr=g('cx_atrium').checked, atrH=+g('cx_atriumh').value||0, n23=g('cx_n23').checked;
+  const hz=g('cx_hazard').value, ra=+g('cx_rarea').value||0, ro=+g('cx_rocc').value||0;
+  const gar=g('cx_garage').value, f4=g('cx_f4ex').checked;
+  const com50=g('cx_com50').checked, lib50=g('cx_lib50').checked, chg200=g('cx_chg200').checked;
+  const TN={ 'nha-o':'nhà ở','cong-cong':'nhà công cộng','hon-hop':'nhà hỗn hợp','san-xuat':'nhà sản xuất','kho':'nhà kho' };
+  const hits=[], notes=[];
+  const hit=(t,c,d)=>hits.push({t,c,d:d||''});
+
+  if(['nha-o','cong-cong','hon-hop'].includes(type)&&hP>28)
+    hit('Hút khói hành lang (trừ hành lang bên) & sảnh','D.2.a',`${TN[type]} cao ${hP} m > 28 m`);
+  if(base&&baseCorr)
+    hit('Hút khói hành lang & đường hầm đi bộ tầng hầm/nửa hầm','D.2.b','Liên thông phòng có người làm việc thường xuyên');
+  if(clen>15&&!cnat){
+    const ind=(type==='san-xuat'||type==='kho')&&['A','B','C'].includes(hz)&&fl>=2;
+    const pub=type==='cong-cong'&&fl>=6;
+    if(ind||pub){
+      if(f4) notes.push('Miễn hút khói hành lang > 15 m: nhà nhóm F4 ≤ 6 tầng có báo cháy đầu báo khói / chữa cháy tự động (SĐ1:2023).');
+      else hit('Hút khói hành lang dài > 15 m (không TGTN khi cháy)','D.2.c',`Dài ${clen} m`);
+    }
+  }
+  if(type==='hon-hop'&&n23) hit('Hút khói hành lang & sảnh chung (thang không nhiễm khói)','D.2.d','');
+  if(atr&&(hP>28||atrH>15)) hit('Hút khói sảnh thông tầng','D.2.e',`Sảnh cao ${atrH} m`);
+  if((type==='san-xuat'||type==='kho')&&['A','B','C'].includes(hz))
+    hit('Hút khói gian phòng SX/kho','D.2.f',`Hạng ${hz} — SĐ1:2023 đã bỏ D, E`);
+  if((type==='san-xuat'||type==='kho')&&['D','E'].includes(hz))
+    notes.push('Không yêu cầu hút khói cho nhà xưởng/kho hạng D, E (SĐ1:2023).');
+  if(ra>=50&&ro>=50) hit('Hút khói phòng tập trung đông người','D.2.g',`${ra} m² / ${ro} người`);
+  if(com50) hit('Hút khói gian thương mại / trưng bày','D.2.g','> 50 m²');
+  if(lib50) hit('Hút khói thư viện / bảo tàng / triển lãm','D.2.g','≥ 50 m², có chất cháy');
+  if(chg200) hit('Hút khói phòng thay đồ / gửi đồ','D.2.g','≥ 200 m²');
+  if(gar!=='khong') hit(`Hút khói gara ${gar==='ngam'?'ngầm':'kín trên mặt đất'}`,'D.2.h','');
+
+  const press=[];
+  if(n23){press.push('Buồng thang bộ N2 — 20–50 Pa');press.push('Khoang đệm N3 tại tầng có cháy');}
+  if(base) press.push('Sảnh thang máy tầng hầm / nửa hầm');
+  if(gar!=='khong') press.push('Khoang đệm ngăn cách gara với khu vực khác');
+  if(hits.length) press.push('Cấp khí bù phối hợp hút khói (D.1.6 · D.10.9)');
+
+  let html='';
+  if(hits.length){
+    html+='<div style="font-weight:700;margin-bottom:8px">🔴 Yêu cầu hệ thống hút khói:</div>';
+    hits.forEach(h=>{html+=`<div class="rule-hit"><span class="rule-clause">${h.c}</span><b>${h.t}</b>${h.d?`<br><span style="color:var(--muted)">${h.d}</span>`:''}</div>`;});
+  } else {
+    html+='<div class="rule-miss"><span class="rule-clause">—</span>Không yêu cầu hút khói theo Phụ lục D với thông số đã nhập.</div>';
+  }
+  if(press.length){
+    html+='<div style="font-weight:700;margin:10px 0 8px">🟠 Hệ thống cấp không khí chống khói kèm theo:</div><ul style="font-size:0.82rem;padding-left:20px;line-height:1.9">';
+    press.forEach(p=>{html+=`<li>${p}</li>`;});
+    html+='</ul>';
+  }
+  notes.forEach(n=>{html+=`<div class="note-box" style="margin-top:8px">ℹ️ ${n}</div>`;});
+  html+=`<div style="font-size:0.7rem;color:var(--muted);margin-top:10px">Căn cứ: QCVN 06:2022/BXD & SĐ1:2023, Phụ lục D (quy định). Cho phép thay đổi trên cơ sở luận chứng kỹ thuật (D.1.7).</div>`;
+  document.getElementById('cx_out').innerHTML=html;
+}
+
+// ---------- MODULE B: Phụ lục H ----------
+function h_show(){
+  const m=document.getElementById('h_method').value;
+  ['h1','h2','h3','gv','leak'].forEach(k=>{
+    document.getElementById('h_f_'+k).style.display=(k===m)?'flex':'none';
+  });
+}
+function interpH1(B,isRes){
+  const xs=[0.6,0.9,1.2,1.8,2.4];
+  const ys=isRes?[1.00,0.82,0.70,0.51,0.41]:[1.05,0.91,0.80,0.62,0.50];
+  if(B<=xs[0])return ys[0];
+  if(B>=xs[xs.length-1])return ys[ys.length-1];
+  for(let i=0;i<xs.length-1;i++)if(B>=xs[i]&&B<=xs[i+1]){
+    const t=(B-xs[i])/(xs[i+1]-xs[i]);return ys[i]+t*(ys[i+1]-ys[i]);
+  }
+}
+function tcvn_h1(){
+  const g=id=>document.getElementById(id);
+  const isRes=g('h1_type').value==='nha-o';
+  const B=+g('h1_b').value||1.2;
+  let H=+g('h1_h').value||2.1; if(H<2)H=2; if(H>2.5)H=2.5;
+  const ppl=+g('h1_ppl').value||1, Tsm=+g('h1_tsm').value||300;
+  const Kd=ppl>=25?1:0.8, n=interpH1(B,isRes);
+  const G1=(isRes?3420:4300)*B*n*Math.pow(H,1.5)*(isRes?1:Kd);
+  const rho=353/(Tsm+273), L=G1/rho;
+  g('h_out').innerHTML=`<div class="anim">
+    <div class="results-grid">
+      <div class="res-card highlight"><div class="res-label">Khối lượng khói G1</div><div class="res-value">${(G1/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">${isRes?'H.1a':'H.1b'} · Kd=${Kd} · n=${n.toFixed(3)}</div></div>
+      <div class="res-card highlight"><div class="res-label">Lưu lượng thể tích</div><div class="res-value">${(L/1000).toFixed(1)}</div><div class="res-unit">× 10³ m³/h tại ${Tsm}°C</div><div class="res-ref">ρ_sm = ${rho.toFixed(3)} kg/m³</div></div>
+    </div>
+    <table class="mini-table"><tr><th>Thông số</th><th>Giá trị</th></tr>
+    <tr><td>B (rộng cửa)</td><td>${B} m</td></tr><tr><td>H (kẹp 2–2.5)</td><td>${H} m</td></tr>
+    <tr><td>Công thức</td><td>G1 = ${isRes?'3420':`4300·Kd`}·B·n·H<sup>1.5</sup></td></tr></table>
+    <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">TCVN 5687:2024 Phụ lục H.1 — hút khói hành lang/sảnh. n nội suy tuyến tính Bảng H.1.</div></div>`;
+}
+function tcvn_h2(){
+  const g=id=>document.getElementById(id);
+  const A=+g('h2_a').value||100, spr=g('h2_spr').checked;
+  const pfIn=+g('h2_pf').value||0, Y=+g('h2_y').value||2.5;
+  const Ks=+g('h2_ks').value, Tsm=+g('h2_tsm').value||300;
+  const Pf=pfIn>0?pfIn:(spr?12:Math.min(12,Math.max(4,0.38*Math.sqrt(A))));
+  const G=678.8*Pf*Math.pow(Y,1.5)*Ks;
+  const rho=353/(Tsm+273), L=G/rho;
+  const warn=(Pf>12||Y>4)?'<div class="note-box" style="margin-top:8px">⚠️ Pf &gt; 12 m hoặc Y &gt; 4 m → xác định lượng khói theo <b>H.3</b>.</div>':'';
+  g('h_out').innerHTML=`<div class="anim">
+    <div class="results-grid">
+      <div class="res-card highlight"><div class="res-label">Khối lượng khói G</div><div class="res-value">${(G/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">H.3 · Pf=${Pf.toFixed(1)} m · Y=${Y} m · Ks=${Ks}</div></div>
+      <div class="res-card highlight"><div class="res-label">Lưu lượng thể tích</div><div class="res-value">${(L/1000).toFixed(1)}</div><div class="res-unit">× 10³ m³/h tại ${Tsm}°C</div><div class="res-ref">ρ_sm = ${rho.toFixed(3)} kg/m³</div></div>
+    </div>${warn}
+    <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">TCVN 5687:2024 Phụ lục H.2 — G = 678,8·Pf·Y<sup>1.5</sup>·Ks. Pf mặc định: sprinkler → 12 m; ngược lại 0,38√A (kẹp 4–12 m).</div></div>`;
+}
+function tcvn_h3(){
+  const g=id=>document.getElementById(id);
+  const Ad=+g('h3_ad').value||1, Hmax=+g('h3_hmax').value||2;
+  const fuel=g('h3_fuel').value, tv=+g('h3_tv').value||35;
+  let v=+g('h3_v').value||0; v=v<=1?0:Math.min(v,5);
+  const Ks=+g('h3_ks').value;
+  const h0=0.5*Hmax+0.2;
+  const gam={khi:4,ran:5,soi:6}[fuel];
+  const rho_v=353/(tv+273), gam_v=rho_v*9.81;
+  const G1=3564*Ad*Math.sqrt(Math.max(0,h0*(gam_v-gam)*rho_v*rho_v+0.7*v*v*rho_v*rho_v))*Ks;
+  g('h_out').innerHTML=`<div class="anim">
+    <div class="results-grid">
+      <div class="res-card highlight"><div class="res-label">Khối lượng khói G1</div><div class="res-value">${(G1/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">H.5 · h0=${h0.toFixed(2)} m · γ=${gam} N/m³</div></div>
+    </div>
+    <table class="mini-table"><tr><th>Thông số</th><th>Giá trị</th></tr>
+    <tr><td>Ad</td><td>${Ad} m²</td></tr><tr><td>γv (không khí ${tv}°C)</td><td>${gam_v.toFixed(2)} N/m³</td></tr>
+    <tr><td>Gió tính toán</td><td>${v} m/s</td></tr></table>
+    <div class="note-box" style="margin-top:8px">Thoát khói <b>tự nhiên</b> qua cửa. Ad chi tiết tính theo H.6–H.13 (cửa đơn/kép, buồng đệm, hệ số K1/K2/K3).</div>
+    <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">TCVN 5687:2024 Phụ lục H.3.</div></div>`;
+}
+function tcvn_gv(){
+  const g=id=>document.getElementById(id);
+  const Av=+g('gv_av').value||0, dP=+g('gv_dp').value||0, n=+g('gv_n').value||1;
+  const Gv=40.3*Math.sqrt(Av*dP)*n;
+  g('h_out').innerHTML=`<div class="anim"><div class="results-grid">
+    <div class="res-card highlight"><div class="res-label">Rò lọt qua van đóng Gv</div><div class="res-value">${Gv.toFixed(0)}</div><div class="res-unit">kg/h</div><div class="res-ref">Đ.7.4b · không vượt quá giá trị NSX</div></div>
+  </div><div style="font-size:0.7rem;color:var(--muted);margin-top:8px">Gv = 40,3·√(Av·ΔP)·n — cộng vào lưu lượng hút cơ khí (Đ.7.4).</div></div>`;
+}
+function tcvn_leak(){
+  const g=id=>document.getElementById(id);
+  const C=+g('lk_cls').value, pt=+g('lk_pt').value||0, area=+g('lk_area').value||0;
+  const q=C*Math.pow(pt,0.65)*1e-3, Q=q*area*3600;
+  g('h_out').innerHTML=`<div class="anim"><div class="results-grid">
+    <div class="res-card highlight"><div class="res-label">Rò lọt đường ống</div><div class="res-value">${Q.toFixed(0)}</div><div class="res-unit">m³/h</div><div class="res-ref">Bảng 1 · q = ${q.toExponential(2)} m³/s·m²</div></div>
+  </div><div style="font-size:0.7rem;color:var(--muted);margin-top:8px">q = C·pt<sup>0,65</sup>·10⁻³ (m³/s trên 1 m² bề mặt ống) — cộng vào lưu lượng quạt.</div></div>`;
+}
+// ---------- MODULE C: Cấp bù & tăng áp ----------
+function tcvn_makeup(){
+  const g=id=>document.getElementById(id);
+  const Gsm=+g('mu_gsm').value||0, Ta=+g('mu_ta').value||35, Tsm=+g('mu_tsm').value||300;
+  const n=+g('mu_n').value||0;
+  const Ga=Gsm/(1-n), rho_a=353/(Ta+273), La=Ga/rho_a;
+  const rho_sm=353/(Tsm+273), Lsm=Gsm/rho_sm;
+  const ratio=La/Lsm*100;
+  g('mu_out').innerHTML=`<div class="anim">
+    <div class="results-grid">
+      <div class="res-card highlight"><div class="res-label">Khối lượng khí bù Ga</div><div class="res-value">${(Ga/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">G.10 · Ga = Gsm/(1−n)</div></div>
+      <div class="res-card highlight"><div class="res-label">Lưu lượng khí bù La</div><div class="res-value">${(La/1000).toFixed(1)}</div><div class="res-unit">× 10³ m³/h tại ${Ta}°C</div><div class="res-ref">G.11 · La = Gsm/ρa</div></div>
+      <div class="res-card"><div class="res-label">Tỷ lệ thể tích La/Lsm</div><div class="res-value">${ratio.toFixed(1)}</div><div class="res-unit">%</div><div class="res-ref">G.12 · La = Lsm·Ta/Tsm</div></div>
+    </div>
+    <table class="mini-table"><tr><th>Thông số</th><th>Giá trị</th></tr>
+    <tr><td>Gsm (khói thải)</td><td>${Gsm.toLocaleString()} kg/h</td></tr>
+    <tr><td>Lsm tại ${Tsm}°C</td><td>${Lsm.toFixed(0)} m³/h</td></tr>
+    <tr><td>ρa tại ${Ta}°C</td><td>${rho_a.toFixed(3)} kg/m³</td></tr></table>
+    <div class="note-box" style="margin-top:8px">Cấp bù <b>theo khối lượng</b> (G.7.1: 85–95% lượng khói thải; G.7.2: cấp bù cơ khí &lt; khói thải). Cùng nhiệt độ thì La/Lsm = ${(100*(Ta+273)/(Tsm+273)).toFixed(1)}% theo G.12.</div>
+    <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">TCVN 5687:2024 Phụ lục G.7.4.</div></div>`;
+}
+function tcvn_press(){
+  const g=id=>document.getElementById(id);
+  const Ad=+g('pr_adoor').value||0;
+  const Qv=1.3*Ad, Qh=Qv*3600;
+  g('mu_out').innerHTML=`<div class="anim">
+    <div class="results-grid">
+      <div class="res-card highlight"><div class="res-label">Lưu lượng tăng áp</div><div class="res-value">${(Qh/1000).toFixed(1)}</div><div class="res-unit">× 10³ m³/h</div><div class="res-ref">Q = 1.3·A_cửa = ${Qv.toFixed(2)} m³/s</div></div>
+    </div>
+    <div class="note-box" style="margin-top:8px">Vận tốc dòng khí qua lỗ cửa mở ≥ <b>1.3 m/s</b> (Đ.6.8.6b), có xét đồng thời hút khói. Áp suất dư duy trì <b>20–50 Pa</b> (D.12). Áp trên cửa đóng ≤ 50 Pa.</div>
+    <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">TCVN 5687:2024 Đ.6.8.6b · QCVN 06:2022 D.12.</div></div>`;
+}
+
+// ---------- MODULE D: Khí động ống gió (SMACNA) ----------
+const FITTINGS=[
+  ['Co 90° trơn (R/D ≥ 1)',0.20],['Co 90° gấp (miter)',0.50],
+  ['Tê rẽ nhánh 90°',0.90],['Tê đi thẳng',0.25],['Chạc 3 xiên 45°',0.40],
+  ['Côn thu',0.10],['Côn mở',0.35],['Van bướm mở hết',0.25],
+  ['Van khói',0.60],['Miệng hút có lưới',1.50],
+  ['Cửa vào quạt',0.50],['Cửa ra quạt',1.00]
+];
+function duct_init_fittings(){
+  let h='<table class="mini-table"><tr><th>Phụ kiện</th><th>ζ</th><th style="width:70px">SL</th></tr>';
+  FITTINGS.forEach((f,i)=>{h+=`<tr><td style="font-family:var(--font)">${f[0]}</td><td>${f[1].toFixed(2)}</td><td><input type="number" id="fit_${i}" value="0" min="0" step="1" style="width:60px;padding:4px"></td></tr>`;});
+  document.getElementById('du_fit').innerHTML=h+'</table>';
+}
+function haaland(Re,eps,D){
+  const x=-1.8*Math.log10(Math.pow(eps/D/3.7,1.11)+6.9/Re);
+  return 1/(x*x);
+}
+function ductRoundProp(Qms,D){
+  const A=Math.PI*D*D/4, v=Qms/A, rho=1.2, nu=1.81e-5/rho;
+  const Re=v*D/nu, f=haaland(Re,0.00009,D), dpM=f*(rho*v*v/2)/D;
+  return {v,dpM,Re,De:D,A};
+}
+function deRect(W,H){return 1.3*Math.pow(W*H,0.625)/Math.pow(W+H,0.25);}
+function ductRectProp(Qms,W,H){
+  const A=W*H, v=Qms/A, De=deRect(W,H), rho=1.2, nu=1.81e-5/rho;
+  const Re=v*De/nu, f=haaland(Re,0.00009,De), dpM=f*(rho*v*v/2)/De;
+  return {v,dpM,Re,De,A};
+}
+function bisect(lo,hi,fn,target,byF){
+  for(let i=0;i<60;i++){const m=(lo+hi)/2,val=fn(m);
+    if((byF?val.dpM:val.v)>target)lo=m;else hi=m;}
+  return (lo+hi)/2;
+}
+function r50up(x){return Math.ceil(x/50)*50;}
+function duct_size(){
+  const g=id=>document.getElementById(id);
+  const Qmh=+g('du_q').value||1000, Qms=Qmh/3600;
+  const shape=g('du_shape').value, byF=g('du_method').value==='friction';
+  const target=+g('du_target').value||1, ratio=+g('du_ratio').value||1.5;
+  let desc,prop;
+  if(shape==='round'){
+    let D=bisect(0.1,3,d=>ductRoundProp(Qms,d),target,byF);
+    D=r50up(D*1000)/1000; prop=ductRoundProp(Qms,D);
+    desc=`Ø${Math.round(D*1000)} mm`;
+  }else{
+    let W=bisect(0.1,3,w=>ductRectProp(Qms,w,w/ratio),target,byF);
+    W=r50up(W*1000)/1000; let H=r50up(W/ratio*1000)/1000;
+    prop=ductRectProp(Qms,W,H);
+    desc=`${Math.round(W*1000)} × ${Math.round(H*1000)} mm`;
+  }
+  const okV=prop.v>=3&&prop.v<=12;
+  g('du_out').innerHTML=`<div class="anim"><div class="results-grid">
+    <div class="res-card highlight"><div class="res-label">Tiết diện chọn</div><div class="res-value" style="font-size:1.05rem">${desc}</div><div class="res-unit">${byF?'đẳng ma sát':'vận tốc'} · làm tròn 50 mm</div></div>
+    <div class="res-card ${okV?'ok-card':''}"><div class="res-label">Vận tốc thực</div><div class="res-value">${prop.v.toFixed(2)}</div><div class="res-unit">m/s</div><div class="res-ref">De = ${(prop.De*1000).toFixed(0)} mm</div></div>
+    <div class="res-card"><div class="res-label">Ma sát đơn vị</div><div class="res-value">${prop.dpM.toFixed(2)}</div><div class="res-unit">Pa/m</div><div class="res-ref">Re = ${prop.Re.toExponential(1)}</div></div>
+  </div>
+  <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">Darcy–Weisbach + Haaland, ε = 0.09 mm (tôn mạ kẽm, SMACNA), ρ = 1.2 kg/m³. De chữ nhật theo Huebscher.</div></div>`;
+  g('du_size').value=desc.replace('Ø','').replace(/\s*×\s*/,'x').replace(/\s*mm/,'');
+}
+function duct_dp(){
+  const g=id=>document.getElementById(id);
+  const Qmh=+g('du_q').value||1000, Qms=Qmh/3600;
+  const L=+g('du_len').value||0, rho=1.2;
+  const s=g('du_size').value.trim().toLowerCase();
+  let prop,label;
+  const m=s.match(/(\d+)\s*x\s*(\d+)/);
+  if(m){const W=+m[1]/1000,H=+m[2]/1000;prop=ductRectProp(Qms,W,H);label=`${m[1]}×${m[2]} mm`;}
+  else{const D=(parseFloat(s)||500)/1000;prop=ductRoundProp(Qms,D);label=`Ø${Math.round(D*1000)} mm`;}
+  const dpf=L*prop.dpM;
+  let zsum=0,rows='';
+  FITTINGS.forEach((f,i)=>{
+    const q=+document.getElementById('fit_'+i).value||0;
+    if(q>0){const dp=f[1]*q*(rho*prop.v*prop.v/2);zsum+=dp;
+      rows+=`<tr><td style="font-family:var(--font)">${f[0]} × ${q}</td><td>ζ=${f[1].toFixed(2)}</td><td>${dp.toFixed(1)} Pa</td></tr>`;}
+  });
+  const total=dpf+zsum;
+  g('du_out').innerHTML=`<div class="anim"><div class="results-grid">
+    <div class="res-card highlight"><div class="res-label">ΔP đoạn ống ${label}</div><div class="res-value">${total.toFixed(0)}</div><div class="res-unit">Pa</div><div class="res-ref">v = ${prop.v.toFixed(2)} m/s · ρv²/2 = ${(rho*prop.v*prop.v/2).toFixed(1)} Pa</div></div>
+    <div class="res-card"><div class="res-label">Ma sát ống</div><div class="res-value">${dpf.toFixed(0)}</div><div class="res-unit">Pa (${L} m × ${prop.dpM.toFixed(2)})</div></div>
+    <div class="res-card"><div class="res-label">Tổn thất cục bộ</div><div class="res-value">${zsum.toFixed(0)}</div><div class="res-unit">Pa</div></div>
+  </div>
+  ${rows?`<table class="mini-table"><tr><th>Phụ kiện</th><th>ζ</th><th>ΔP</th></tr>${rows}</table>`:''}
+  <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">ΔP = L·(Δp/m) + Σζ·ρv²/2 — SMACNA HVAC Systems Duct Design. Dùng thay cho ΔP ước tính ở tab NFPA.</div></div>`;
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  duct_init_fittings();
+  const m=document.getElementById('du_method');
+  if(m)m.addEventListener('change',()=>{
+    const byF=m.value==='friction';
+    document.getElementById('du_target_u').textContent=byF?'Pa/m':'m/s';
+    document.getElementById('du_target').value=byF?1.0:6.0;
+  });
+});
+
 </script>
 </body>
 </html>
