@@ -38,27 +38,6 @@ Phạm vi: toàn bộ công thức, trích dẫn điều khoản, logic kiểm t
 | 16 | Số quạt tối thiểu 2 | ✅ OK | Khuyến nghị thiết kế (dự phòng), không ghi là yêu cầu bắt buộc của tiêu chuẩn |
 | 17 | Biến `pct` không dùng | 🧹 DỌN | Đã xóa |
 
-## 3. Bổ sung v1.2 (2026-10-12) — cấp bù theo khối lượng
-
-Phát hiện: v1.1 tính Q_makeup = 90% × Q_exhaust **theo thể tích**, trong khi
-NFPA 92 §4.4.4.1.2 yêu cầu so sánh theo **khối lượng**. Vì khí thải ở T_s
-và khí bù ở T_a (≠ T_s) nên ρ_s ≠ ρ_a — lấy % thể tích cho kết quả sai.
-
-Ví dụ với số mặc định (Q = 5 000 kW, z = 3.2 m, T_a = 30°C):
-ṁ_p = 13.70 kg/s, T_s = 284°C → ρ_s = 0.634, ρ_a = 1.165 kg/m³.
-
-| Cách tính | Q_makeup | Khối lượng cấp bù | So với hút |
-|---|---|---|---|
-| v1.1 (thể tích 90%) | 70 067 m³/h | 22.67 kg/s | **166% — VI PHẠM §4.4.4.1.2** |
-| v1.2 (khối lượng 90%) | 38 103 m³/h | 12.33 kg/s | 90% — ĐẠT |
-
-Đã sửa: ṁ_mk = 0.90 × ṁ_p; Q_mk = ṁ_mk / ρ_a × 3600 (ρ_a tại T_a);
-thêm ρ_a vào bảng tính/KPI/CSV; số quạt, tiết diện ống cấp bù và diện
-tích thông thủy miệng cấp (v ≤ 1.02 m/s, §4.4.4.1.4) tính riêng theo
-thể tích tại T_a.
-
-
-## 4. Bổ sung v1.3 (2026-10-12) — tab TCVN·QCVN
 
 Đối chiếu văn bản gốc TCVN 5687:2024 (bản PDF, tra cứu 2026-10-12):
 
@@ -85,17 +64,8 @@ thể tích tại T_a.
   → 850×600 mm @ 8,17 m/s, 0,76 Pa/m (đẳng ma sát 1,0); đoạn ống 25 m +
   phụ kiện → ΔP = 119 Pa — hợp lý.
 
-## 5. Bổ sung v1.4 (2026-10-12) — tab TCVN·QCVN lên trước, tăng áp nâng cấp
 
-- Tab **TCVN·QCVN hiển thị trước (mặc định)**, tab NFPA 92 chuyển sau.
-- Tăng áp thang/khoang đệm tính đầy đủ: Q_mở = N_mở·A_cửa·v (v ≥ 1,3 m/s,
-  Đ.6.8.6b) + rò lọt qua khe N cửa đóng q = Cd·A_khe·√(2ΔP/ρ) (Đ.6.8.6b
-  yêu cầu kể đến rò lọt khe cửa) + dự phòng rò lọt hệ thống; tự kiểm tra
-  ΔP ∈ [20, 50] Pa (D.12) và lực mở cửa F ≈ ΔP·A/2 ≤ 100 N (D.1.6).
-- Kiểm thử: 20 tầng × 2 cửa, mở 2 cửa, ΔP = 30 Pa → Q_quạt = 34 805 m³/h
-  (17 690 qua cửa mở + 12 575 rò lọt 38 cửa đóng), F = 28,3 N — hợp lý.
-
-## 6. Việc chưa làm (ngoài phạm vi bảng tính hiện tại)
+## . Việc chưa làm (ngoài phạm vi bảng tính hiện tại)
 
 
 - Kiểm tra plugholing / số lượng & khoảng cách miệng hút (§5.6)
