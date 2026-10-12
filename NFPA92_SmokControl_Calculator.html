@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<!-- NFPA92_SmokControl_Calculator v1.1 — rà soát theo NFPA 92:2024 (2026-10-12):
+     - Cấp khí bù: §4.4.4.1 (miệng cấp dưới mặt phân cách lớp khói; cơ khí < hút → mặc định 90%; v ≤ 1.02 m/s)
+     - 200°C: tiêu chí duy trì được theo NFPA 92 Annex (tenability), không phải điều khoản bắt buộc §4.4.3
+     - Độ sâu lớp khói tối thiểu 20%H: §4.5.1.3 | z ≥ 1.8 m trên mặt đi bộ: tiêu chí thiết kế (IBC §909.8.1)
+     - X_c mặc định 0.70: §5.5.1.4 | HRR tham khảo: NFPA 92 Annex B | Quạt chịu nhiệt: NFPA 92 Ch.6 / EN 12101-3 -->
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFPA 92:2024 — Bảng tính hệ thống hút khói sự cố</title>
+<style>
+  :root {
+    --primary: #1a5276;
+    --primary-light: #2e86c1;
+    --accent: #e67e22;
+    --accent-light: #f39c12;
+    --ok: #1e8449;
+    --ok-bg: #d5f5e3;
+    --warn: #b7770d;
+    --warn-bg: #fef9e7;
+    --danger: #c0392b;
+    --danger-bg: #fdecea;
+    --surface: #f4f6f8;
+    --card: #ffffff;
+    --border: #d5d8dc;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --font: 'Segoe UI', Arial, sans-serif;
+    --mono: 'Consolas', 'Courier New', monospace;
+    --radius: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--surface);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+  }
+  .app-header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.3px; }
+  .app-header p { font-size: 0.8rem; opacity: 0.85; margin-top: 3px; }
+  .header-badge {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* ===== LAYOUT ===== */
+  .app-body {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 76px);
+  }
+
+  /* ===== SIDEBAR (INPUT) ===== */
+  .sidebar {
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .section-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--surface);
+    margin-bottom: 4px;
+  }
+
+  .input-group { display: flex; flex-direction: column; gap: 4px; }
+  .input-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .input-group label .sym {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    background: var(--surface);
+    color: var(--primary-light);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 80px;
+    gap: 6px;
+    align-items: center;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.88rem;
+    font-family: var(--mono);
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  input[type="number"]:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(46,134,193,0.15);
+    background: #fff;
+  }
+  .unit-tag {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .hint {
+    font-size: 0.71rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 1px;
+  }
+
+  /* Tooltip ghi chú */
+  .input-group { position: relative; }
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: auto;
+    user-select: none;
+    transition: background 0.2s;
+  }
+  .info-icon:hover { background: var(--primary); }
+  .tooltip-box {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 200;
+    background: #1a2a3a;
+    color: #e8f0f8;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.72rem;
+    line-height: 1.65;
+    width: 290px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    pointer-events: none;
+    margin-top: 4px;
+  }
+  .tooltip-box.visible { display: block; }
+  .tooltip-box strong { color: #7ec8e3; font-size: 0.73rem; }
+  .tooltip-box .tt-row { margin-bottom: 4px; }
+  .tooltip-box .tt-ref {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    font-size: 0.68rem;
+    color: #aab4be;
+  }
+  .tooltip-box .tt-val {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    padding: 0 5px;
+    font-family: var(--mono);
+    color: #f0c060;
+  }
+
+  /* Slider cho X_c */
+  .slider-row { display: flex; align-items: center; gap: 8px; }
+  input[type="range"] {
+    flex: 1;
+    accent-color: var(--primary-light);
+    cursor: pointer;
+  }
+  .slider-val {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--primary);
+    min-width: 32px;
+    text-align: right;
+  }
+
+  /* Nút tính */
+  .btn-calc {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    letter-spacing: 0.5px;
+    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 3px 10px rgba(230,126,34,0.35);
+    margin-top: 4px;
+  }
+  .btn-calc:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(230,126,34,0.4); }
+  .btn-calc:active { transform: translateY(0); }
+
+  .btn-reset {
+    background: var(--surface);
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* ===== MAIN (OUTPUT) ===== */
+  .main {
+    padding: 20px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* Status banner */
+  .status-banner {
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    border: 1.5px solid;
+    transition: all 0.3s;
+  }
+  .status-banner.ok   { background: var(--ok-bg);   border-color: #82e0aa; color: var(--ok); }
+  .status-banner.warn { background: var(--warn-bg); border-color: #f9ca4d; color: var(--warn); }
+  .status-banner.info { background: #eaf4fc; border-color: #85c1e9; color: var(--primary); }
+  .status-icon { font-size: 1.4rem; flex-shrink: 0; }
+
+  /* Cards kết quả */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+  }
+  .res-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: box-shadow 0.2s;
+  }
+  .res-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .res-card.highlight {
+    border-color: var(--primary-light);
+    background: linear-gradient(135deg, #eaf4fc 0%, #d6eaf8 100%);
+  }
+  .res-card.danger-card { border-color: #e74c3c; background: var(--danger-bg); }
+  .res-card.ok-card    { border-color: #2ecc71; background: var(--ok-bg); }
+  .res-label { font-size: 0.7rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .res-value { font-size: 1.5rem; font-weight: 800; color: var(--primary); font-family: var(--mono); line-height: 1; }
+  .res-value.danger { color: var(--danger); }
+  .res-value.ok     { color: var(--ok); }
+  .res-unit  { font-size: 0.72rem; color: var(--muted); }
+  .res-ref   { font-size: 0.65rem; color: var(--primary-light); margin-top: 2px; font-style: italic; }
+
+  /* Bảng tính */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-header {
+    background: var(--primary);
+    color: white;
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-body { padding: 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  thead th {
+    background: #f0f4f8;
+    padding: 9px 12px;
+    text-align: left;
+    font-size: 0.71rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid #f0f0f0; transition: background 0.15s; }
+  tbody tr:hover { background: #f8fbff; }
+  tbody td { padding: 9px 12px; vertical-align: middle; }
+  td.step-num {
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 0.72rem;
+    width: 28px;
+  }
+  td.formula {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--primary-light);
+    max-width: 240px;
+  }
+  td.result-val {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text);
+    text-align: right;
+    white-space: nowrap;
+  }
+  td.result-val.pass { color: var(--ok); }
+  td.result-val.fail { color: var(--danger); font-weight: 900; }
+  td.ref-col {
+    font-size: 0.68rem;
+    color: var(--primary-light);
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .mode-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+  .mode-strong { background: #d6eaf8; color: var(--primary); }
+  .mode-flame  { background: #fdecea; color: var(--danger); }
+
+  /* Bảng thiết bị */
+  .device-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    padding: 14px;
+  }
+  .device-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .device-name { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+  .device-val  { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-top: 2px; font-family: var(--mono); }
+
+  /* Thanh kiểm tra */
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .check-row.pass { background: var(--ok-bg);   color: var(--ok); }
+  .check-row.fail { background: var(--danger-bg); color: var(--danger); }
+  .check-icon { font-size: 1rem; }
+
+  /* Excel export */
+  .btn-export {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    padding: 9px 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+  }
+  .btn-export:hover { background: var(--primary-light); }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Responsive */
+  @media (max-width: 800px) {
+    .app-body { grid-template-columns: 1fr; }
+    .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+    .app-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .anim { animation: fadeIn 0.3s ease; }
+
+  /* Chế độ cột khói indicator */
+  .plume-indicator {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .pi-item {
+    flex: 1;
+    min-width: 120px;
+    border: 2px solid;
+    border-radius: 6px;
+    padding: 8px 12px;
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition: all 0.3s;
+    opacity: 0.4;
+  }
+  .pi-item.active { opacity: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .pi-strong { border-color: var(--primary-light); color: var(--primary); }
+  .pi-flame  { border-color: var(--danger); color: var(--danger); }
+  .pi-strong.active { background: #eaf4fc; }
+  .pi-flame.active  { background: var(--danger-bg); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .empty-state .big { font-size: 3rem; margin-bottom: 12px; }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div>
+    <h1>🔥 Hệ thống Hút Khói Sự Cố — Bảng Tính Thiết Kế</h1>
+    <p>Axisymmetric Plume Model · NFPA 92:2024 (Standard for Smoke Control Systems)</p>
+  </div>
+  <div class="header-badge">NFPA 92<br>2024</div>
+</div>
+
+<!-- BODY -->
+<div class="app-body">
+
+  <!-- ===== SIDEBAR INPUT ===== -->
+  <div class="sidebar">
+
+    <div>
+      <div class="section-title">📐 Thông số công trình</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+
+        <div class="input-group">
+          <label>
+            <span class="sym">A_f</span> Diện tích mặt sàn
+            <span class="info-icon" onclick="toggleTip('tip_Af')" title="Ghi chú">?</span>
+          </label>
+          <div class="input-row">
+            <input type="number" id="A_f" value="2000" min="10" step="50">
+            <span class="unit-tag">m²</span>
+          </div>
+          <div class="tooltip-box" id="tip_Af">
+            <div class="tt-row"><strong>Định nghĩa:</strong> Diện tích mặt bằng của khu vực cháy giả định (fire area), thường là một tầng hoặc một khoang cháy riêng biệt.</div>
+            <div class="tt-row"><strong>Dùng để:</strong> Thông số hồ sơ — <strong>không</strong> tham gia công thức cột khói. Dùng để kiểm tra tương quan mật độ cháy thiết kế q = Q/A_f (kW/m²) và lưu hồ sơ tính toán.</div>
+            <div class="tt-row"><strong>Giá trị tham khảo:</strong>
+              <span class="tt-val">Atrium nhỏ: 500–1 000 m²</span><br>
+              <span class="tt-val">TTTM: 1 000–5 000 m²</span><br>
+              <span class="tt-val">Kho hàng: 2 000–10 000 m²</span>
+            </div>
+            <div class="tt-ref">📖 NFPA 92:2024 §5.5 (Design Fire) — A_f là dữ liệu hồ sơ, không có trong công thức</div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>
+            <span class="sym">H</span> Chiều cao không gian
+            <span class="info-icon" onclick="toggleTip('tip_H')" title="Ghi chú">?</span>
+          </label>
+          <div class="input-row">
+            <input type="number" id="H" value="8.0" min="2" step="0.1">
+            <span class="unit-tag">m</span>
+          </div>
+          <div class="tooltip-box" id="tip_H">
+            <div class="tt-row"><strong>Định nghĩa:</strong> Chiều cao thông thoáng thực tế của không gian, đo từ sàn hoàn thiện đến điểm thấp nhất của trần hoặc kết cấu đỡ mái.</div>
+            <div class="tt-row"><strong>Lưu ý:</strong> Không tính phần plenum hoặc không gian trên trần giả. Nếu trần dốc, dùng chiều cao trung bình.</div>
+            <div class="tt-row"><strong>Ảnh hưởng:</strong> H quyết định độ sâu lớp khói (H − z). NFPA 92 §4.5.1.3 yêu cầu độ sâu lớp khói thiết kế tối thiểu = 20% chiều cao H (tức z &lt; 0.8H).</div>
+            <div class="tt-row"><strong>Giá trị điển hình:</strong>
+              <span class="tt-val">Văn phòng/khách sạn: 3–5 m</span><br>
+              <span class="tt-val">Atrium/sảnh lớn: 6–20 m</span><br>
+              <span class="tt-val">Kho cao tầng: 8–30 m</span>
+            </div>
+            <div class="tt-ref">📖 NFPA 92:2024 §4.4.1 | §5.5.1</div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>
+            <span class="sym">Q</span> Tốc độ tỏa nhiệt đám cháy
+            <span class="info-icon" onclick="toggleTip('tip_Q')" title="Ghi chú">?</span>
+          </label>
+          <div class="input-row">
+            <input type="number" id="Q" value="5000" min="100" step="100">
+            <span class="unit-tag">kW</span>
+          </div>
+          <span class="hint">Theo loại công năng (NFPA 92 Annex B)</span>
+          <div class="tooltip-box" id="tip_Q">
+            <div class="tt-row"><strong>Định nghĩa:</strong> Heat Release Rate (HRR) — tốc độ tỏa nhiệt tổng của đám cháy thiết kế (kW). Đây là thông số quan trọng nhất, quyết định lưu lượng khói sinh ra.</div>
+            <div class="tt-row"><strong>Giá trị tham khảo theo công năng:</strong><br>
+              <span class="tt-val">Văn phòng, khách sạn: 1 000–2 500 kW</span><br>
+              <span class="tt-val">Trung tâm thương mại: 2 500–5 000 kW</span><br>
+              <span class="tt-val">Kho hàng thông thường: 5 000–10 000 kW</span><br>
+              <span class="tt-val">Kho hàng xếp kệ cao: 10 000–50 000 kW</span><br>
+              <span class="tt-val">Nhà để xe: 1 500–3 000 kW</span>
+            </div>
+            <div class="tt-row"><strong>Lưu ý:</strong> Q là HRR tại thời điểm thiết kế (thường là 5–10 phút sau khi bắt đầu cháy), không phải giá trị đỉnh cực đại.</div>
+            <div class="tt-ref">📖 NFPA 92:2024 §5.5.1 | NFPA 92 Annex B (dự báo HRR) | SFPE Handbook</div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>
+            <span class="sym">z</span> Chiều cao lớp khói sạch
+            <span class="info-icon" onclick="toggleTip('tip_z')" title="Ghi chú">?</span>
+          </label>
+          <div class="input-row">
+            <input type="number" id="z" value="3.2" min="1.8" step="0.1">
+            <span class="unit-tag">m</span>
+          </div>
+          <span class="hint">Tính từ sàn; khuyến nghị ≥ 2.1 m (1.8 m tuyệt đối + 0.3 m dự phòng)</span>
+          <div class="tooltip-box" id="tip_z">
+            <div class="tt-row"><strong>Định nghĩa:</strong> Smoke-free layer height — chiều cao của lớp không khí sạch bên dưới ranh giới lớp khói, đo từ sàn. Đây là chiều cao thiết kế cần duy trì trong suốt thời gian sơ tán.</div>
+            <div class="tt-row"><strong>Yêu cầu tối thiểu:</strong><br>
+              <span class="tt-val">z ≥ 1.8 m (chiều cao đầu người) + 0.3 m dự phòng = 2.1 m</span><br>
+              Tiêu chí thiết kế NFPA 92: giữ mặt phân cách lớp khói ≥ <strong>1.8 m</strong> (≈ 6 ft) trên mặt đi bộ của lối thoát nạn (xem IBC §909.8.1).
+            </div>
+            <div class="tt-row"><strong>Ảnh hưởng:</strong> z càng lớn → lưu lượng khói ṁ_p càng lớn → quạt hút lớn hơn. Cần cân bằng giữa an toàn và kinh tế.</div>
+            <div class="tt-row"><strong>Giới hạn trên:</strong> z &lt; 0.8H (cần đủ không gian vùng khói phía trên).</div>
+            <div class="tt-ref">📖 NFPA 92:2024 — mục tiêu thiết kế lớp khói | IBC §909.8.1</div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>
+            <span class="sym">T_a</span> Nhiệt độ môi trường
+            <span class="info-icon" onclick="toggleTip('tip_Ta')" title="Ghi chú">?</span>
+          </label>
+          <div class="input-row">
+            <input type="number" id="T_a" value="30" min="15" max="50" step="1">
+            <span class="unit-tag">°C</span>
+          </div>
+          <div class="tooltip-box" id="tip_Ta">
+            <div class="tt-row"><strong>Định nghĩa:</strong> Nhiệt độ không khí môi trường xung quanh tại thời điểm xảy ra cháy, trước khi bị ảnh hưởng bởi đám cháy.</div>
+            <div class="tt-row"><strong>Ảnh hưởng:</strong> T_a là nền để tính ΔT_s và T_s. T_a cao → T_s cao hơn → dễ vượt giới hạn 200°C.</div>
+            <div class="tt-row"><strong>Giá trị khuyến nghị:</strong><br>
+              <span class="tt-val">Việt Nam (không điều hòa): 35–40°C</span><br>
+              <span class="tt-val">Có điều hòa: 24–28°C</span><br>
+              <span class="tt-val">Thông thường dùng: 30°C (NFPA 92 mặc định)</span>
+            </div>
+            <div class="tt-row"><strong>Lưu ý:</strong> Dùng nhiệt độ bảo thủ (cao hơn) để thiên về an toàn. Không dùng nhiệt độ có điều hòa nếu hệ thống HVAC tắt khi có báo cháy.</div>
+            <div class="tt-ref">📖 NFPA 92:2024 §5.5.1 | ASHRAE Fundamentals</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div>
+      <div class="section-title">⚙️ Hệ số tính toán</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+
+        <div class="input-group">
+          <label>
+            <span class="sym">X_c</span> Phân suất nhiệt đối lưu
+            <span class="info-icon" onclick="toggleTip('tip_Xc')" title="Ghi chú">?</span>
+          </label>
+          <div class="slider-row">
+            <input type="range" id="X_c" value="0.70" min="0.50" max="0.90" step="0.01" oninput="document.getElementById('xc_val').textContent=parseFloat(this.value).toFixed(2)">
+            <span class="slider-val" id="xc_val">0.70</span>
+          </div>
+          <span class="hint">Thông thường 0.65–0.80 (NFPA 92 §5.5.1)</span>
+          <div class="tooltip-box" id="tip_Xc">
+            <div class="tt-row"><strong>Định nghĩa:</strong> Convective fraction (X_c) — tỷ lệ phần nhiệt tỏa ra dưới dạng đối lưu (nhiệt đi theo dòng khói) so với tổng nhiệt lượng Q. Phần còn lại (1 – X_c) là bức xạ nhiệt.</div>
+            <div class="tt-row"><strong>Công thức:</strong> <span class="tt-val">Q_c = X_c × Q</span></div>
+            <div class="tt-row"><strong>Giá trị điển hình theo loại vật liệu cháy:</strong><br>
+              <span class="tt-val">Nhựa, polymer: X_c ≈ 0.60–0.65</span><br>
+              <span class="tt-val">Gỗ, vải, giấy: X_c ≈ 0.70–0.75</span><br>
+              <span class="tt-val">Xăng, dầu: X_c ≈ 0.60–0.70</span><br>
+              <span class="tt-val">NFPA 92 mặc định an toàn: X_c = 0.70</span>
+            </div>
+            <div class="tt-row"><strong>Lưu ý:</strong> Giá trị X_c thấp hơn → Q_c nhỏ hơn → ṁ_p nhỏ hơn (thiên về không an toàn). Nên dùng X_c = 0.70 khi không có dữ liệu cụ thể.</div>
+            <div class="tt-ref">📖 NFPA 92:2024 §5.5.1.4 (mặc định X_c = 0.70) | SFPE Handbook</div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label><span class="sym">c_p</span> Nhiệt dung riêng không khí</label>
+          <div class="input-row">
+            <input type="number" id="c_p" value="1.005" min="0.9" max="1.1" step="0.001">
+            <span class="unit-tag">kJ/kg·K</span>
+          </div>
+          <span class="hint">Hằng số vật lý, thông thường = 1.005 kJ/kg·K</span>
+        </div>
+
+        <div class="input-group">
+          <label>
+            <span class="sym">η</span> Hiệu suất quạt (ước tính)
+            <span class="info-icon" onclick="toggleTip('tip_eta')" title="Ghi chú">?</span>
+          </label>
+          <div class="input-row">
+            <input type="number" id="eta" value="75" min="50" max="95" step="1">
+            <span class="unit-tag">%</span>
+          </div>
+          <div class="tooltip-box" id="tip_eta">
+            <div class="tt-row"><strong>Định nghĩa:</strong> Fan total efficiency (η) — hiệu suất tổng của quạt, bao gồm hiệu suất cơ học (impeller) và hiệu suất truyền động (motor + belt/coupling).</div>
+            <div class="tt-row"><strong>Công thức tính công suất:</strong><br>
+              <span class="tt-val">P (kW) = Q_v (m³/s) × ΔP (Pa) / η</span>
+            </div>
+            <div class="tt-row"><strong>Giá trị điển hình:</strong><br>
+              <span class="tt-val">Quạt hướng trục (axial): η = 60–75%</span><br>
+              <span class="tt-val">Quạt ly tâm (centrifugal): η = 70–85%</span><br>
+              <span class="tt-val">Quạt hút khói chịu nhiệt 250°C: η = 55–70%</span><br>
+              <span class="tt-val">Giá trị an toàn ước tính: η = 65–70%</span>
+            </div>
+            <div class="tt-row"><strong>Lưu ý:</strong> Quạt chịu nhiệt cao thường có η thấp hơn quạt thông thường. Khi nhiệt độ khói cao, cần hỏi nhà cung cấp giá trị η tại điều kiện vận hành thực tế.</div>
+            <div class="tt-ref">📖 AMCA Publication 201 | ASHRAE HVAC Systems Handbook</div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>
+            <span class="sym">ΔP</span> Tổng trở kháng hệ thống
+            <span class="info-icon" onclick="toggleTip('tip_dP')" title="Ghi chú">?</span>
+          </label>
+          <div class="input-row">
+            <input type="number" id="dP" value="300" min="100" max="1000" step="10">
+            <span class="unit-tag">Pa</span>
+          </div>
+          <div class="tooltip-box" id="tip_dP">
+            <div class="tt-row"><strong>Định nghĩa:</strong> Total system resistance (ΔP) — tổng tổn thất áp suất của hệ thống ống gió hút khói, bao gồm: ma sát ống gió thẳng + tổn thất cục bộ (co, tee, van, miệng hút) + tổn thất qua thiết bị lọc/van khói.</div>
+            <div class="tt-row"><strong>Thành phần tổn thất áp:</strong><br>
+              <span class="tt-val">Ống gió thẳng: 0.8–1.5 Pa/m</span><br>
+              <span class="tt-val">Co 90°, tee phân nhánh: 10–30 Pa/cái</span><br>
+              <span class="tt-val">Van khói (fire damper): 30–80 Pa</span><br>
+              <span class="tt-val">Miệng hút khói: 20–50 Pa</span>
+            </div>
+            <div class="tt-row"><strong>Giá trị ước tính sơ bộ:</strong><br>
+              <span class="tt-val">Hệ thống ngắn (&lt; 30 m ống): 150–250 Pa</span><br>
+              <span class="tt-val">Hệ thống trung bình (30–60 m): 250–400 Pa</span><br>
+              <span class="tt-val">Hệ thống dài (&gt; 60 m): 400–600 Pa</span>
+            </div>
+            <div class="tt-row"><strong>Lưu ý:</strong> Giá trị này chỉ để ước tính công suất quạt. Cần tính toán thủy lực chi tiết theo ASHRAE hoặc phần mềm khi thiết kế thi công.</div>
+            <div class="tt-ref">📖 ASHRAE Fundamentals Ch.21 | SMACNA HVAC Duct Design</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="btn-calc" onclick="calculate()">⚡ TÍNH TOÁN</button>
+    <button class="btn-reset" onclick="resetDefaults()">↺ Đặt lại mặc định</button>
+
+    <div style="font-size:0.68rem;color:var(--muted);text-align:center;line-height:1.5;margin-top:4px;">
+      Kết quả mang tính tham khảo kỹ thuật.<br>
+      Cần xác nhận bởi kỹ sư có kinh nghiệm.
+    </div>
+
+  </div>
+
+  <!-- ===== MAIN OUTPUT ===== -->
+  <div class="main" id="output">
+    <div class="empty-state">
+      <div class="big">📊</div>
+      Nhập thông số và nhấn <strong>TÍNH TOÁN</strong> để xem kết quả.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ==================== CALCULATION ENGINE ====================
+function calculate() {
+  const A_f = parseFloat(document.getElementById('A_f').value) || 2000;
+  const H   = parseFloat(document.getElementById('H').value)   || 8.0;
+  const Q   = parseFloat(document.getElementById('Q').value)   || 5000;
+  const z   = parseFloat(document.getElementById('z').value)   || 3.2;
+  const T_a = parseFloat(document.getElementById('T_a').value) || 30;
+  const X_c = parseFloat(document.getElementById('X_c').value) || 0.70;
+  const c_p = parseFloat(document.getElementById('c_p').value) || 1.005;
+  const eta = parseFloat(document.getElementById('eta').value) || 75;
+  const dP  = parseFloat(document.getElementById('dP').value)  || 300;
+
+  // Bước 1: Q_c
+  const Q_c = X_c * Q;
+
+  // Bước 2: z_l (chiều cao ngọn lửa TB)  — Eq 5.5.1.1
+  const z_l = 0.166 * Math.pow(Q_c, 0.4);
+
+  // Bước 3: Chế độ plume
+  const isStrong = z >= z_l;
+
+  // Bước 4: ṁ_p  — Eq 5.5.1.2 / 5.5.1.3
+  let m_dot, m_formula;
+  if (isStrong) {
+    m_dot    = 0.071 * Math.pow(Q_c, 1/3) * Math.pow(z, 5/3) + 0.0018 * Q_c;
+    m_formula = `0.071 × ${Q_c.toFixed(0)}^(1/3) × ${z}^(5/3) + 0.0018 × ${Q_c.toFixed(0)}`;
+  } else {
+    m_dot    = 0.032 * Math.pow(Q_c, 0.6) * z;
+    m_formula = `0.032 × ${Q_c.toFixed(0)}^(3/5) × ${z}`;
+  }
+
+  // Bước 5: ΔT_s, T_s
+  const dT_s = Q_c / (m_dot * c_p);
+  const T_s  = T_a + dT_s;
+
+  // Bước 6: ρ_s
+  const rho_s = 353 / (T_s + 273);
+
+  // Bước 7: Q_v (m³/s), Q_exhaust (m³/h)
+  const Q_v       = m_dot / rho_s;
+  const Q_exhaust = Q_v * 3600;
+
+  // Bước 8: Q_makeup — NFPA 92 §4.4.4.1.2: cấp bù cơ khí PHẢI NHỎ HƠN lưu lượng hút (theo khối lượng).
+  // Thực hành phổ biến: cấp bù 85–95%, phần còn lại là rò lọt qua khe cửa/cửa sổ.
+  const Q_makeup = 0.90 * Q_exhaust;
+
+  // Bước 9: Số quạt (mỗi quạt ~30 000 m³/h khuyến nghị, min 2)
+  const fans_per_30k = Math.ceil(Q_exhaust / 30000);
+  const n_fans = Math.max(2, fans_per_30k);
+  const q_per_fan = Q_exhaust / n_fans;
+
+  // Bước 10: Công suất quạt (kW)  P = Q_v * dP / (eta/100) / 1000
+  const power_kW = (Q_v * dP) / (eta / 100) / 1000;
+  const power_per_fan = power_kW / n_fans;
+
+  // Bước 11: Tiết diện ống (v = 5 m/s)
+  const v_duct = 5.0; // m/s
+  const duct_area = Q_v / n_fans / v_duct; // m² mỗi ống
+  const duct_side = Math.sqrt(duct_area); // gần đúng vuông (m)
+  const duct_mm = Math.ceil(duct_side * 1000 / 50) * 50; // làm tròn lên 50mm
+
+  // Kiểm tra
+  const chk_z_min = z >= 2.1;
+  const chk_Ts    = T_s <= 200;
+  const chk_z_H   = z < H * 0.8;
+
+  // ==================== RENDER ====================
+  const out = document.getElementById('output');
+
+  out.innerHTML = `
+  <div class="anim">
+
+    <!-- Status banner -->
+    ${chk_Ts
+      ? `<div class="status-banner ok"><span class="status-icon">✅</span>
+           <div><strong>Kết quả hợp lệ theo NFPA 92:2024</strong><br>
+           <span style="font-weight:400">T_s = ${T_s.toFixed(1)}°C ≤ 200°C · z = ${z} m ≥ 2.1 m · Mô hình: ${isStrong ? 'Strong Plume' : 'Flame Plume'}</span></div></div>`
+      : `<div class="status-banner warn"><span class="status-icon">⚠️</span>
+           <div><strong>Nhiệt độ khói vượt tiêu chí duy trì được 200°C (NFPA 92 — tenability)</strong><br>
+           <span style="font-weight:400">T_s = ${T_s.toFixed(1)}°C > 200°C — Cần tăng chiều cao z hoặc giảm Q</span></div></div>`
+    }
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div style="font-size:0.8rem;color:var(--muted)">
+        🕒 Tính lúc: ${new Date().toLocaleTimeString('vi-VN')} · Q = ${Q.toLocaleString()} kW · z = ${z} m
+      </div>
+      <button class="btn-export" onclick="exportCSV(${Q_c.toFixed(2)},${z_l.toFixed(3)},${m_dot.toFixed(3)},${T_s.toFixed(2)},${Q_exhaust.toFixed(0)})">
+        📥 Xuất CSV
+      </button>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="results-grid">
+      <div class="res-card highlight">
+        <div class="res-label">Lưu lượng hút</div>
+        <div class="res-value">${(Q_exhaust/1000).toFixed(1)}</div>
+        <div class="res-unit">× 10³ m³/h</div>
+        <div class="res-ref">Q_exhaust · §5.5.1</div>
+      </div>
+      <div class="res-card highlight">
+        <div class="res-label">Cấp khí bù</div>
+        <div class="res-value">${(Q_makeup/1000).toFixed(1)}</div>
+        <div class="res-unit">× 10³ m³/h</div>
+        <div class="res-ref">Q_makeup = 90% hút · §4.4.4.1</div>
+      </div>
+      <div class="res-card">
+        <div class="res-label">Mật độ cháy thiết kế</div>
+        <div class="res-value">${(Q/A_f).toFixed(2)}</div>
+        <div class="res-unit">kW/m²</div>
+        <div class="res-ref">q = Q / A_f · hồ sơ</div>
+      </div>
+      <div class="res-card ${chk_Ts ? 'ok-card' : 'danger-card'}">
+        <div class="res-label">Nhiệt độ khói tại z</div>
+        <div class="res-value ${chk_Ts ? 'ok' : 'danger'}">${T_s.toFixed(1)}</div>
+        <div class="res-unit">°C ${chk_Ts ? '✅' : '⚠️'} (giới hạn duy trì được 200°C)</div>
+        <div class="res-ref">T_s · tiêu chí duy trì được (NFPA 92 Annex)</div>
+      </div>
+      <div class="res-card">
+        <div class="res-label">Lưu lượng KL khói</div>
+        <div class="res-value">${m_dot.toFixed(2)}</div>
+        <div class="res-unit">kg/s</div>
+        <div class="res-ref">ṁ_p · §5.5.1 (axisymmetric plume)</div>
+      </div>
+      <div class="res-card">
+        <div class="res-label">Chiều cao ngọn lửa</div>
+        <div class="res-value">${z_l.toFixed(2)}</div>
+        <div class="res-unit">m</div>
+        <div class="res-ref">z_l · §5.5.1</div>
+      </div>
+      <div class="res-card">
+        <div class="res-label">Mật độ khói</div>
+        <div class="res-value">${rho_s.toFixed(3)}</div>
+        <div class="res-unit">kg/m³</div>
+        <div class="res-ref">ρ_s tại z</div>
+      </div>
+      <div class="res-card">
+        <div class="res-label">Công suất tổng quạt</div>
+        <div class="res-value">${power_kW.toFixed(1)}</div>
+        <div class="res-unit">kW</div>
+        <div class="res-ref">η = ${eta}% · ΔP = ${dP} Pa</div>
+      </div>
+      <div class="res-card">
+        <div class="res-label">Số quạt hút</div>
+        <div class="res-value">${n_fans}</div>
+        <div class="res-unit">quạt · ${(q_per_fan/1000).toFixed(1)}k m³/h/quạt</div>
+        <div class="res-ref">Phân bố đều</div>
+      </div>
+    </div>
+
+    <!-- Chế độ Plume -->
+    <div class="card">
+      <div class="card-header">🌪️ Chế độ cột khói (Plume Regime)</div>
+      <div style="padding:14px;">
+        <div class="plume-indicator">
+          <div class="pi-item pi-strong ${isStrong ? 'active' : ''}">
+            <div style="font-size:1.2rem">💨</div>
+            Strong Plume<br>
+            <span style="font-weight:400;font-size:0.7rem">z ≥ z_l = ${z_l.toFixed(2)} m</span><br>
+            §5.5.1
+          </div>
+          <div style="color:var(--muted);font-size:1.2rem;align-self:center">→</div>
+          <div class="pi-item pi-flame ${!isStrong ? 'active' : ''}">
+            <div style="font-size:1.2rem">🔥</div>
+            Flame Plume<br>
+            <span style="font-weight:400;font-size:0.7rem">z &lt; z_l = ${z_l.toFixed(2)} m</span><br>
+            §5.5.1
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:0.78rem;color:var(--muted)">
+          Hiện tại: z = <strong>${z} m</strong>
+          ${isStrong ? '≥' : '&lt;'} z_l = <strong>${z_l.toFixed(2)} m</strong>
+          → Áp dụng <strong>${isStrong ? 'Strong Plume' : 'Flame Plume'}</strong> (NFPA 92 §5.5.1 — axisymmetric plume)
+        </div>
+      </div>
+    </div>
+
+    <!-- Bảng tính từng bước -->
+    <div class="card">
+      <div class="card-header">📋 Bảng tính toán từng bước (NFPA 92:2024)</div>
+      <div class="card-body">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Thông số</th>
+              <th>Ký hiệu</th>
+              <th>Công thức / Giá trị</th>
+              <th style="text-align:right">Kết quả</th>
+              <th>Đơn vị</th>
+              <th>Điều khoản</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="step-num">1</td>
+              <td>Nhiệt tỏa đối lưu</td>
+              <td><code>Q_c</code></td>
+              <td class="formula">Q_c = X_c × Q = ${X_c} × ${Q}</td>
+              <td class="result-val">${Q_c.toFixed(0)}</td>
+              <td>kW</td>
+              <td class="ref-col">§5.5.1</td>
+            </tr>
+            <tr>
+              <td class="step-num">2</td>
+              <td>Chiều cao ngọn lửa TB</td>
+              <td><code>z_l</code></td>
+              <td class="formula">z_l = 0.166 × Q_c^0.4</td>
+              <td class="result-val">${z_l.toFixed(3)}</td>
+              <td>m</td>
+              <td class="ref-col">§5.5.1</td>
+            </tr>
+            <tr>
+              <td class="step-num">3</td>
+              <td>Chế độ cột khói</td>
+              <td>—</td>
+              <td class="formula">z = ${z} ${isStrong ? '≥' : '&lt;'} z_l = ${z_l.toFixed(2)}</td>
+              <td class="result-val" style="text-align:right">
+                <span class="mode-badge ${isStrong ? 'mode-strong' : 'mode-flame'}">
+                  ${isStrong ? 'STRONG' : 'FLAME'}
+                </span>
+              </td>
+              <td>—</td>
+              <td class="ref-col">§5.5.1</td>
+            </tr>
+            <tr>
+              <td class="step-num">4</td>
+              <td>Lưu lượng KL khói</td>
+              <td><code>ṁ_p</code></td>
+              <td class="formula">${m_formula}</td>
+              <td class="result-val">${m_dot.toFixed(3)}</td>
+              <td>kg/s</td>
+              <td class="ref-col">§5.5.1</td>
+            </tr>
+            <tr>
+              <td class="step-num">5</td>
+              <td>Độ tăng nhiệt độ khói</td>
+              <td><code>ΔT_s</code></td>
+              <td class="formula">Q_c / (ṁ_p × c_p)</td>
+              <td class="result-val">${dT_s.toFixed(2)}</td>
+              <td>°C</td>
+              <td class="ref-col">§5.5.1</td>
+            </tr>
+            <tr>
+              <td class="step-num">6</td>
+              <td>Nhiệt độ khói tại z</td>
+              <td><code>T_s</code></td>
+              <td class="formula">T_a + ΔT_s = ${T_a} + ${dT_s.toFixed(2)}</td>
+              <td class="result-val ${chk_Ts ? 'pass' : 'fail'}">${T_s.toFixed(2)}</td>
+              <td>°C</td>
+              <td class="ref-col">Annex (tenability)</td>
+            </tr>
+            <tr>
+              <td class="step-num">7</td>
+              <td>Mật độ khói</td>
+              <td><code>ρ_s</code></td>
+              <td class="formula">353 / (T_s + 273)</td>
+              <td class="result-val">${rho_s.toFixed(4)}</td>
+              <td>kg/m³</td>
+              <td class="ref-col">—</td>
+            </tr>
+            <tr>
+              <td class="step-num">8</td>
+              <td>Lưu lượng thể tích hút</td>
+              <td><code>Q_v</code></td>
+              <td class="formula">ṁ_p / ρ_s</td>
+              <td class="result-val">${Q_v.toFixed(3)}</td>
+              <td>m³/s</td>
+              <td class="ref-col">§5.5.1</td>
+            </tr>
+            <tr>
+              <td class="step-num">9</td>
+              <td>Lưu lượng hút (m³/h)</td>
+              <td><code>Q_ex</code></td>
+              <td class="formula">Q_v × 3600</td>
+              <td class="result-val">${Q_exhaust.toFixed(0)}</td>
+              <td>m³/h</td>
+              <td class="ref-col">§5.5.1</td>
+            </tr>
+            <tr>
+              <td class="step-num">10</td>
+              <td>Lưu lượng cấp khí bù</td>
+              <td><code>Q_mk</code></td>
+              <td class="formula">0.90 × Q_exhaust</td>
+              <td class="result-val">${Q_makeup.toFixed(0)}</td>
+              <td>m³/h</td>
+              <td class="ref-col">§4.4.4.1.2</td>
+            </tr>
+            <tr>
+              <td class="step-num">11</td>
+              <td>Công suất quạt</td>
+              <td><code>P</code></td>
+              <td class="formula">Q_v × ΔP / η = ${Q_v.toFixed(2)} × ${dP} / ${eta/100}</td>
+              <td class="result-val">${power_kW.toFixed(2)}</td>
+              <td>kW</td>
+              <td class="ref-col">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Kiểm tra tiêu chí -->
+    <div class="card">
+      <div class="card-header">✅ Kiểm tra tiêu chí NFPA 92:2024</div>
+      <div style="padding:14px;display:flex;flex-direction:column;gap:6px;">
+        <div class="check-row ${chk_z_min ? 'pass' : 'fail'}">
+          <span class="check-icon">${chk_z_min ? '✅' : '❌'}</span>
+          <strong>Chiều cao lớp khói sạch:</strong>&nbsp;
+          z = ${z} m ${chk_z_min ? '≥' : '&lt;'} 2.1 m khuyến nghị (1.8 m tuyệt đối) — NFPA 92 / IBC §909.8.1 ${chk_z_min ? 'ĐẠT' : 'KHÔNG ĐẠT'}
+        </div>
+        <div class="check-row ${chk_Ts ? 'pass' : 'fail'}">
+          <span class="check-icon">${chk_Ts ? '✅' : '❌'}</span>
+          <strong>Nhiệt độ khói:</strong>&nbsp;
+          T_s = ${T_s.toFixed(1)}°C ${chk_Ts ? '≤' : '>'} 200°C tiêu chí duy trì được — NFPA 92 (Annex tenability) ${chk_Ts ? 'ĐẠT' : 'KHÔNG ĐẠT'}
+        </div>
+        <div class="check-row ${chk_z_H ? 'pass' : 'fail'}">
+          <span class="check-icon">${chk_z_H ? '✅' : '⚠️'}</span>
+          <strong>Độ sâu lớp khói:</strong>&nbsp;
+          H − z = ${((H-z)/H*100).toFixed(0)}%H ${chk_z_H ? '≥' : '&lt;'} 20%H tối thiểu — §4.5.1.3 ${chk_z_H ? 'ĐẠT' : 'KIỂM TRA LẠI'}
+        </div>
+        <div class="check-row pass">
+          <span class="check-icon">✅</span>
+          <strong>Cấp khí bù:</strong>&nbsp;
+          Miệng cấp dưới mặt phân cách lớp khói (§4.4.4.1.1) · v ≤ 1.02 m/s tại vùng có thể chạm cột khói (§4.4.4.1.4)
+        </div>
+        <div class="check-row pass">
+          <span class="check-icon">✅</span>
+          <strong>Thiết bị chịu nhiệt:</strong>&nbsp;
+          Quạt/ống/van phải chịu được nhiệt độ khói tính toán — NFPA 92 Ch.6; cấp 250°C/2h là thực hành phổ biến (EN 12101-3)
+        </div>
+      </div>
+    </div>
+
+    <!-- Thiết bị khuyến nghị -->
+    <div class="card">
+      <div class="card-header">🔧 Thiết bị khuyến nghị</div>
+      <div class="device-grid">
+        <div class="device-item">
+          <div class="device-name">Số quạt hút khói</div>
+          <div class="device-val">${n_fans} quạt</div>
+        </div>
+        <div class="device-item">
+          <div class="device-name">Lưu lượng mỗi quạt hút</div>
+          <div class="device-val">${(q_per_fan/1000).toFixed(1)}k m³/h</div>
+        </div>
+        <div class="device-item">
+          <div class="device-name">Công suất mỗi quạt</div>
+          <div class="device-val">${power_per_fan.toFixed(1)} kW</div>
+        </div>
+        <div class="device-item">
+          <div class="device-name">Nhiệt độ chịu nhiệt quạt</div>
+          <div class="device-val">≥ 250°C / 2h</div>
+        </div>
+        <div class="device-item">
+          <div class="device-name">Số quạt cấp khí bù</div>
+          <div class="device-val">${n_fans} quạt</div>
+        </div>
+        <div class="device-item">
+          <div class="device-name">Tiết diện ống hút (v=5 m/s)</div>
+          <div class="device-val">≈ ${duct_mm} × ${duct_mm} mm</div>
+        </div>
+        <div class="device-item">
+          <div class="device-name">Van khói (Fire Damper)</div>
+          <div class="device-val">250°C / 2h</div>
+        </div>
+        <div class="device-item">
+          <div class="device-name">Vận tốc cấp bù tại miệng</div>
+          <div class="device-val">≤ 1.0 m/s</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer note -->
+    <div style="font-size:0.72rem;color:var(--muted);padding:8px 2px;line-height:1.6;border-top:1px solid var(--border);padding-top:12px;">
+      <strong>Tài liệu tham chiếu:</strong> NFPA 92:2024 Standard for Smoke Control Systems ·
+      Kết quả dựa trên mô hình Axisymmetric Plume (§5.5.1) ·
+      Phiên bản 1.1 — rà soát theo NFPA 92:2024 ngày 2026-10-12 ·
+      Cần kiểm tra thêm: tầm nhìn trong khói, thời gian sơ tán, bố trí miệng hút theo mặt bằng thực tế.
+    </div>
+
+  </div>`;
+}
+
+// ==================== EXPORT CSV ====================
+function exportCSV(Q_c, z_l, m_dot, T_s, Q_ex) {
+  const A_f = document.getElementById('A_f').value;
+  const H   = document.getElementById('H').value;
+  const Q   = document.getElementById('Q').value;
+  const z   = document.getElementById('z').value;
+  const T_a = document.getElementById('T_a').value;
+  const X_c = document.getElementById('X_c').value;
+
+  const rows = [
+    ['NFPA 92:2024 - Bảng tính hệ thống hút khói sự cố'],
+    ['Axisymmetric Plume Model'],
+    ['Ngày tính', new Date().toLocaleString('vi-VN')],
+    [''],
+    ['=== THÔNG SỐ ĐẦU VÀO ==='],
+    ['Thông số', 'Ký hiệu', 'Giá trị', 'Đơn vị'],
+    ['Diện tích mặt sàn', 'A_f', A_f, 'm²'],
+    ['Chiều cao không gian', 'H', H, 'm'],
+    ['Tốc độ tỏa nhiệt', 'Q', Q, 'kW'],
+    ['Chiều cao lớp khói sạch', 'z', z, 'm'],
+    ['Nhiệt độ môi trường', 'T_a', T_a, '°C'],
+    ['Phân suất nhiệt đối lưu', 'X_c', X_c, '-'],
+    [''],
+    ['=== KẾT QUẢ TÍNH TOÁN ==='],
+    ['Thông số', 'Ký hiệu', 'Kết quả', 'Đơn vị', 'Điều khoản'],
+    ['Nhiệt tỏa đối lưu', 'Q_c', Q_c.toFixed(0), 'kW', '§5.5.1'],
+    ['Chiều cao ngọn lửa TB', 'z_l', z_l.toFixed(3), 'm', '§5.5.1'],
+    ['Lưu lượng KL khói', 'ṁ_p', m_dot.toFixed(3), 'kg/s', '§5.5.1'],
+    ['Nhiệt độ khói tại z', 'T_s', T_s.toFixed(2), '°C', 'Annex (tenability)'],
+    ['Lưu lượng hút', 'Q_exhaust', Q_ex.toFixed(0), 'm³/h', '§5.5.1'],
+    ['Lưu lượng cấp khí bù (90%)', 'Q_makeup', (Q_ex * 0.9).toFixed(0), 'm³/h', '§4.4.4.1.2'],
+  ];
+
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `NFPA92_SmokControl_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ==================== TOOLTIP ====================
+function toggleTip(id) {
+  // Đóng tất cả tooltip khác trước
+  document.querySelectorAll('.tooltip-box.visible').forEach(el => {
+    if (el.id !== id) el.classList.remove('visible');
+  });
+  const box = document.getElementById(id);
+  if (box) box.classList.toggle('visible');
+}
+// Đóng tooltip khi click ra ngoài
+document.addEventListener('click', function(e) {
+  if (!e.target.classList.contains('info-icon')) {
+    document.querySelectorAll('.tooltip-box.visible').forEach(el => el.classList.remove('visible'));
+  }
+});
+
+// ==================== RESET ====================
+function resetDefaults() {
+  document.getElementById('A_f').value = 2000;
+  document.getElementById('H').value   = 8.0;
+  document.getElementById('Q').value   = 5000;
+  document.getElementById('z').value   = 3.2;
+  document.getElementById('T_a').value = 30;
+  document.getElementById('X_c').value = 0.70;
+  document.getElementById('xc_val').textContent = '0.70';
+  document.getElementById('c_p').value = 1.005;
+  document.getElementById('eta').value = 75;
+  document.getElementById('dP').value  = 300;
+  document.getElementById('output').innerHTML = `
+    <div class="empty-state">
+      <div class="big">📊</div>
+      Nhập thông số và nhấn <strong>TÍNH TOÁN</strong> để xem kết quả.
+    </div>`;
+}
+
+// Tự động tính khi load
+window.addEventListener('load', calculate);
+
+// Tính lại khi nhấn Enter
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') calculate();
+});
+</script>
+</body>
+</html>
