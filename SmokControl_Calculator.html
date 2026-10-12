@@ -6,7 +6,8 @@
   Hạng mục: Thông gió sự cố
   Người lập: Kỹ sư HVAC Phạm Văn Trung
   ───────────────────────────────────────────────────────────
-  Phiên bản v1.6 — 2026-10-12
+  v1.7 — 2026-10-12: xuất bảng tính Excel (.xlsx) — công thức sống + ghi chú điều khoản
+  Phiên bản v1.7 — 2026-10-12
   ═══════════════════════════════════════════════════════════
 -->
 <html lang="vi">
@@ -1317,6 +1318,7 @@
 </div><!-- /tab-tcvn -->
 
 <script>
+const EXCEL_BTN='<div style="margin-bottom:10px"><button class="btn-export" onclick="exportExcel()">\uD83D\uDCE5 Xuất Excel (.xlsx)</button></div>';
 // ==================== CALCULATION ENGINE ====================
 function calculate() {
   const A_f = parseFloat(document.getElementById('A_f').value) || 2000;
@@ -1420,6 +1422,9 @@ function calculate() {
       </div>
       <button class="btn-export" onclick="exportCSV(${Q_c.toFixed(2)},${z_l.toFixed(3)},${m_dot.toFixed(3)},${T_s.toFixed(2)},${Q_exhaust.toFixed(0)},${rho_a.toFixed(4)},${m_makeup.toFixed(3)},${Q_makeup.toFixed(0)})">
         📥 Xuất CSV
+      </button>
+      <button class="btn-export" onclick="exportExcel()">
+        📥 Xuất Excel
       </button>
     </div>
 
@@ -1736,7 +1741,7 @@ function calculate() {
     <div style="font-size:0.72rem;color:var(--muted);padding:8px 2px;line-height:1.6;border-top:1px solid var(--border);padding-top:12px;">
       <strong>Tài liệu tham chiếu:</strong> NFPA 92:2024 Standard for Smoke Control Systems ·
       Kết quả dựa trên mô hình Axisymmetric Plume (§5.5.1) ·
-      Phiên bản 1.6 — 2026-10-12 (khung tên hồ sơ) ·
+      Phiên bản 1.7 — 2026-10-12 (xuất Excel) ·
       Cần kiểm tra thêm: tầm nhìn trong khói, thời gian sơ tán, bố trí miệng hút theo mặt bằng thực tế.
     </div>
 
@@ -1933,7 +1938,7 @@ function tcvn_h1(){
   const Kd=ppl>=25?1:0.8, n=interpH1(B,isRes);
   const G1=(isRes?3420:4300)*B*n*Math.pow(H,1.5)*(isRes?1:Kd);
   const rho=353/(Tsm+273), L=G1/rho;
-  g('h_out').innerHTML=`<div class="anim">
+  g('h_out').innerHTML=`<div class="anim">${EXCEL_BTN}
     <div class="results-grid">
       <div class="res-card highlight"><div class="res-label">Khối lượng khói G1</div><div class="res-value">${(G1/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">${isRes?'H.1a':'H.1b'} · Kd=${Kd} · n=${n.toFixed(3)}</div></div>
       <div class="res-card highlight"><div class="res-label">Lưu lượng thể tích</div><div class="res-value">${(L/1000).toFixed(1)}</div><div class="res-unit">× 10³ m³/h tại ${Tsm}°C</div><div class="res-ref">ρ_sm = ${rho.toFixed(3)} kg/m³</div></div>
@@ -1952,7 +1957,7 @@ function tcvn_h2(){
   const G=678.8*Pf*Math.pow(Y,1.5)*Ks;
   const rho=353/(Tsm+273), L=G/rho;
   const warn=(Pf>12||Y>4)?'<div class="note-box" style="margin-top:8px">⚠️ Pf &gt; 12 m hoặc Y &gt; 4 m → xác định lượng khói theo <b>H.3</b>.</div>':'';
-  g('h_out').innerHTML=`<div class="anim">
+  g('h_out').innerHTML=`<div class="anim">${EXCEL_BTN}
     <div class="results-grid">
       <div class="res-card highlight"><div class="res-label">Khối lượng khói G</div><div class="res-value">${(G/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">H.3 · Pf=${Pf.toFixed(1)} m · Y=${Y} m · Ks=${Ks}</div></div>
       <div class="res-card highlight"><div class="res-label">Lưu lượng thể tích</div><div class="res-value">${(L/1000).toFixed(1)}</div><div class="res-unit">× 10³ m³/h tại ${Tsm}°C</div><div class="res-ref">ρ_sm = ${rho.toFixed(3)} kg/m³</div></div>
@@ -1969,7 +1974,7 @@ function tcvn_h3(){
   const gam={khi:4,ran:5,soi:6}[fuel];
   const rho_v=353/(tv+273), gam_v=rho_v*9.81;
   const G1=3564*Ad*Math.sqrt(Math.max(0,h0*(gam_v-gam)*rho_v*rho_v+0.7*v*v*rho_v*rho_v))*Ks;
-  g('h_out').innerHTML=`<div class="anim">
+  g('h_out').innerHTML=`<div class="anim">${EXCEL_BTN}
     <div class="results-grid">
       <div class="res-card highlight"><div class="res-label">Khối lượng khói G1</div><div class="res-value">${(G1/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">H.5 · h0=${h0.toFixed(2)} m · γ=${gam} N/m³</div></div>
     </div>
@@ -1983,7 +1988,7 @@ function tcvn_gv(){
   const g=id=>document.getElementById(id);
   const Av=+g('gv_av').value||0, dP=+g('gv_dp').value||0, n=+g('gv_n').value||1;
   const Gv=40.3*Math.sqrt(Av*dP)*n;
-  g('h_out').innerHTML=`<div class="anim"><div class="results-grid">
+  g('h_out').innerHTML=`<div class="anim">${EXCEL_BTN}<div class="results-grid">
     <div class="res-card highlight"><div class="res-label">Rò lọt qua van đóng Gv</div><div class="res-value">${Gv.toFixed(0)}</div><div class="res-unit">kg/h</div><div class="res-ref">Đ.7.4b · không vượt quá giá trị NSX</div></div>
   </div><div style="font-size:0.7rem;color:var(--muted);margin-top:8px">Gv = 40,3·√(Av·ΔP)·n — cộng vào lưu lượng hút cơ khí (Đ.7.4).</div></div>`;
 }
@@ -1991,7 +1996,7 @@ function tcvn_leak(){
   const g=id=>document.getElementById(id);
   const C=+g('lk_cls').value, pt=+g('lk_pt').value||0, area=+g('lk_area').value||0;
   const q=C*Math.pow(pt,0.65)*1e-3, Q=q*area*3600;
-  g('h_out').innerHTML=`<div class="anim"><div class="results-grid">
+  g('h_out').innerHTML=`<div class="anim">${EXCEL_BTN}<div class="results-grid">
     <div class="res-card highlight"><div class="res-label">Rò lọt đường ống</div><div class="res-value">${Q.toFixed(0)}</div><div class="res-unit">m³/h</div><div class="res-ref">Bảng 1 · q = ${q.toExponential(2)} m³/s·m²</div></div>
   </div><div style="font-size:0.7rem;color:var(--muted);margin-top:8px">q = C·pt<sup>0,65</sup>·10⁻³ (m³/s trên 1 m² bề mặt ống) — cộng vào lưu lượng quạt.</div></div>`;
 }
@@ -2003,7 +2008,7 @@ function tcvn_makeup(){
   const Ga=Gsm/(1-n), rho_a=353/(Ta+273), La=Ga/rho_a;
   const rho_sm=353/(Tsm+273), Lsm=Gsm/rho_sm;
   const ratio=La/Lsm*100;
-  g('mu_out').innerHTML=`<div class="anim">
+  g('mu_out').innerHTML=`<div class="anim">${EXCEL_BTN}
     <div class="results-grid">
       <div class="res-card highlight"><div class="res-label">Khối lượng khí bù Ga</div><div class="res-value">${(Ga/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">G.10 · Ga = Gsm/(1−n)</div></div>
       <div class="res-card highlight"><div class="res-label">Lưu lượng khí bù La</div><div class="res-value">${(La/1000).toFixed(1)}</div><div class="res-unit">× 10³ m³/h tại ${Ta}°C</div><div class="res-ref">G.11 · La = Gsm/ρa</div></div>
@@ -2032,7 +2037,7 @@ function tcvn_press(){
   const Qt=(Qopen+Qclosed)*(1+mg/100), Qh=Qt*3600;          // m³/s → m³/h
   // Lực mở cửa (thực hành EN 12101-6): F ≈ ΔP·A/2 ≤ 100 N — QCVN 06 D.1.6
   const F=dP*Ad/2, okP=dP>=20&&dP<=50, okF=F<=100;
-  g('mu_out').innerHTML=`<div class="anim">
+  g('mu_out').innerHTML=`<div class="anim">${EXCEL_BTN}
     <div class="results-grid">
       <div class="res-card highlight"><div class="res-label">Lưu lượng quạt tăng áp</div><div class="res-value">${(Qh/1000).toFixed(1)}</div><div class="res-unit">× 10³ m³/h</div><div class="res-ref">${Qt.toFixed(2)} m³/s · gồm dự phòng ${mg}%</div></div>
       <div class="res-card"><div class="res-label">Qua cửa mở (${Nopen} cửa)</div><div class="res-value">${(Qopen*3600/1000).toFixed(1)}</div><div class="res-unit">× 10³ m³/h</div><div class="res-ref">N·A·v = ${Nopen}×${Ad}×${v}</div></div>
@@ -2104,7 +2109,7 @@ function duct_size(){
     desc=`${Math.round(W*1000)} × ${Math.round(H*1000)} mm`;
   }
   const okV=prop.v>=3&&prop.v<=12;
-  g('du_out').innerHTML=`<div class="anim"><div class="results-grid">
+  g('du_out').innerHTML=`<div class="anim">${EXCEL_BTN}<div class="results-grid">
     <div class="res-card highlight"><div class="res-label">Tiết diện chọn</div><div class="res-value" style="font-size:1.05rem">${desc}</div><div class="res-unit">${byF?'đẳng ma sát':'vận tốc'} · làm tròn 50 mm</div></div>
     <div class="res-card ${okV?'ok-card':''}"><div class="res-label">Vận tốc thực</div><div class="res-value">${prop.v.toFixed(2)}</div><div class="res-unit">m/s</div><div class="res-ref">De = ${(prop.De*1000).toFixed(0)} mm</div></div>
     <div class="res-card"><div class="res-label">Ma sát đơn vị</div><div class="res-value">${prop.dpM.toFixed(2)}</div><div class="res-unit">Pa/m</div><div class="res-ref">Re = ${prop.Re.toExponential(1)}</div></div>
@@ -2129,7 +2134,7 @@ function duct_dp(){
       rows+=`<tr><td style="font-family:var(--font)">${f[0]} × ${q}</td><td>ζ=${f[1].toFixed(2)}</td><td>${dp.toFixed(1)} Pa</td></tr>`;}
   });
   const total=dpf+zsum;
-  g('du_out').innerHTML=`<div class="anim"><div class="results-grid">
+  g('du_out').innerHTML=`<div class="anim">${EXCEL_BTN}<div class="results-grid">
     <div class="res-card highlight"><div class="res-label">ΔP đoạn ống ${label}</div><div class="res-value">${total.toFixed(0)}</div><div class="res-unit">Pa</div><div class="res-ref">v = ${prop.v.toFixed(2)} m/s · ρv²/2 = ${(rho*prop.v*prop.v/2).toFixed(1)} Pa</div></div>
     <div class="res-card"><div class="res-label">Ma sát ống</div><div class="res-value">${dpf.toFixed(0)}</div><div class="res-unit">Pa (${L} m × ${prop.dpM.toFixed(2)})</div></div>
     <div class="res-card"><div class="res-label">Tổn thất cục bộ</div><div class="res-value">${zsum.toFixed(0)}</div><div class="res-unit">Pa</div></div>
@@ -2146,6 +2151,574 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('du_target').value=byF?1.0:6.0;
   });
 });
+
+</script>
+<script>
+/* ============================================================
+   XUẤT BẢNG TÍNH EXCEL (.xlsx) — thuần JavaScript, không cần mạng
+   - Ô vàng: số liệu nhập (người dùng sửa được)
+   - Ô xanh: CÔNG THỨC Excel sống (đổi số liệu tự tính lại)
+   - Cột Ghi chú: trích dẫn điều khoản TCVN 5687:2024 / QCVN 06 / NFPA 92
+   ============================================================ */
+(function(){
+'use strict';
+
+/* ---------- CRC32 ---------- */
+const CRC_T = (()=>{ const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c; }
+  return t; })();
+function crc32(u8){ let c=0xFFFFFFFF;
+  for(let i=0;i<u8.length;i++) c=CRC_T[(c^u8[i])&0xFF]^(c>>>8);
+  return (c^0xFFFFFFFF)>>>0; }
+
+/* ---------- ZIP (stored, không nén) ---------- */
+function zipStore(files){
+  const enc=new TextEncoder(), out=[], central=[];
+  let off=0;
+  const w8=v=>out.push(v&0xFF);
+  const w16=v=>{out.push(v&0xFF,(v>>>8)&0xFF);};
+  const w32=v=>{out.push(v&0xFF,(v>>>8)&0xFF,(v>>>16)&0xFF,(v>>>24)&0xFF);};
+  const wb=b=>{for(let i=0;i<b.length;i++)out.push(b[i]);};
+  for(const f of files){
+    const data=enc.encode(f.data), nb=enc.encode(f.name), crc=crc32(data);
+    w32(0x04034b50); w16(20); w16(0x0800); w16(0); w16(0); w16(0x21);
+    w32(crc); w32(data.length); w32(data.length); w16(nb.length); w16(0);
+    wb(nb); wb(data);
+    central.push({nb,crc,size:data.length,off});
+    off+=30+nb.length+data.length;
+  }
+  const cOff=off, c=[];
+  const c16=v=>{c.push(v&0xFF,(v>>>8)&0xFF);};
+  const c32=v=>{c.push(v&0xFF,(v>>>8)&0xFF,(v>>>16)&0xFF,(v>>>24)&0xFF);};
+  for(const e of central){
+    c32(0x02014b50); c16(0x031E); c16(20); c16(0x0800); c16(0); c16(0); c16(0x21);
+    c32(e.crc); c32(e.size); c32(e.size);
+    c16(e.nb.length); c16(0); c16(0); c16(0); c16(0); c32(0); c32(e.off);
+    for(let i=0;i<e.nb.length;i++)c.push(e.nb[i]);
+  }
+  const cSize=c.length;
+  c32(0x06054b50); c16(0); c16(0); c16(central.length); c16(central.length);
+  c32(cSize); c32(cOff); c16(0);
+  return new Blob([new Uint8Array(out.concat(c))],
+    {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+
+/* ---------- XML helpers ---------- */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function colL(i){ let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26);} return s; }
+
+/* ---------- Styles ---------- */
+const STYLES=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<numFmts count="3">
+<numFmt numFmtId="164" formatCode="#,##0"/>
+<numFmt numFmtId="165" formatCode="#,##0.00"/>
+<numFmt numFmtId="166" formatCode="0.0%"/>
+</numFmts>
+<fonts count="8">
+<font><sz val="11"/><name val="Calibri"/></font>
+<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
+<font><b/><sz val="14"/><color rgb="FF1F4E79"/><name val="Calibri"/></font>
+<font><i/><sz val="11"/><color rgb="FF808080"/><name val="Calibri"/></font>
+<font><b/><sz val="11"/><name val="Calibri"/></font>
+<font><i/><sz val="11"/><name val="Calibri"/></font>
+<font><b/><sz val="11"/><color rgb="FF006100"/><name val="Calibri"/></font>
+<font><b/><sz val="11"/><color rgb="FF9C0006"/><name val="Calibri"/></font>
+</fonts>
+<fills count="6">
+<fill><patternFill patternType="none"/></fill>
+<fill><patternFill patternType="gray125"/></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FF1F4E79"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFD9D9D9"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFFFFF99"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFDAEEF3"/><bgColor indexed="64"/></patternFill></fill>
+</fills>
+<borders count="2">
+<border><left/><right/><top/><bottom/><diagonal/></border>
+<border><left style="thin"><color rgb="FFBFBFBF"/></left><right style="thin"><color rgb="FFBFBFBF"/></right><top style="thin"><color rgb="FFBFBFBF"/></top><bottom style="thin"><color rgb="FFBFBFBF"/></bottom><diagonal/></border>
+</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+<cellXfs count="16">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>
+<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="4" fillId="3" borderId="1" xfId="0"/>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0"/>
+<xf numFmtId="0" fontId="5" fillId="0" borderId="1" xfId="0"/>
+<xf numFmtId="165" fontId="0" fillId="4" borderId="1" xfId="0" applyNumberFormat="1"/>
+<xf numFmtId="164" fontId="0" fillId="4" borderId="1" xfId="0" applyNumberFormat="1"/>
+<xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0"/>
+<xf numFmtId="165" fontId="4" fillId="5" borderId="1" xfId="0" applyNumberFormat="1"/>
+<xf numFmtId="164" fontId="4" fillId="5" borderId="1" xfId="0" applyNumberFormat="1"/>
+<xf numFmtId="166" fontId="4" fillId="5" borderId="1" xfId="0" applyNumberFormat="1"/>
+<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>
+<xf numFmtId="0" fontId="6" fillId="0" borderId="1" xfId="0"/>
+<xf numFmtId="0" fontId="7" fillId="0" borderId="1" xfId="0"/>
+</cellXfs>
+</styleSheet>`;
+/* style index: 0 def | 1 header | 2 title | 3 subtitle | 4 section | 5 label | 6 symbol
+   7 input | 8 input-int | 9 input-text | 10 result | 11 result-int | 12 result-% | 13 note | 14 pass | 15 fail */
+
+/* ---------- Sheet builder ---------- */
+function newSheet(name){
+  const rows=[], merges=[], refs={};
+  return {
+    name, rows, merges, refs,
+    row(cells){ rows.push(cells); return rows.length; },
+    title(t){ const r=this.row([{t:'s',v:t,s:2}]); merges.push('A'+r+':F'+r); },
+    sub(t){ const r=this.row([{t:'s',v:t,s:3}]); merges.push('A'+r+':F'+r); },
+    header(h){ this.row(h.map(x=>({t:'s',v:x,s:1}))); },
+    section(a,b){ const r=this.row([{t:'s',v:a,s:4},{t:'s',v:b,s:4}]); merges.push('B'+r+':F'+r); },
+    noteRow(a,txt){ this.row([{t:'s',v:a,s:5},{t:'s',v:txt,s:13}]); merges.push('B'+this.rows.length+':F'+this.rows.length); },
+    inNum(a,label,sym,val,unit,note,ref,int_){
+      const r=this.row([{t:'s',v:a,s:5},{t:'s',v:label,s:5},{t:'s',v:sym,s:6},
+        {t:'n',v:+val||0,s:int_?8:7},{t:'s',v:unit,s:5},{t:'s',v:note,s:13}]);
+      if(ref) refs[ref]='D'+r;
+    },
+    inText(a,label,sym,val,unit,note,ref){
+      const r=this.row([{t:'s',v:a,s:5},{t:'s',v:label,s:5},{t:'s',v:sym,s:6},
+        {t:'s',v:String(val),s:9},{t:'s',v:unit,s:5},{t:'s',v:note,s:13}]);
+      if(ref) refs[ref]='D'+r;
+    },
+    form(a,label,sym,formula,cached,unit,note,ref,st){
+      const r=this.row([{t:'s',v:a,s:5},{t:'s',v:label,s:5},{t:'s',v:sym,s:6},
+        {t:'f',f:formula,v:+cached||0,s:(st==null?10:st)},{t:'s',v:unit,s:5},{t:'s',v:note,s:13}]);
+      if(ref) refs[ref]='D'+r;
+    },
+    formStr(a,label,sym,formula,cached,note,ref){
+      const r=this.row([{t:'s',v:a,s:5},{t:'s',v:label,s:5},{t:'s',v:sym,s:6},
+        {t:'fs',f:formula,v:String(cached),s:5},{t:'s',v:'',s:5},{t:'s',v:note,s:13}]);
+      if(ref) refs[ref]='D'+r;
+    }
+  };
+}
+
+function sheetXML(sh){
+  // thay {ref} bằng địa chỉ ô thật
+  const sub=tx=>String(tx).replace(/\{([A-Za-z0-9_]+)\}/g,(m,k)=>sh.refs[k]||m);
+  let d='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
+  '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+  '<sheetViews><sheetView workbookViewId="0"/></sheetViews>'+
+  '<sheetFormat defaultRowHeight="15"/>'+
+  '<cols><col min="1" max="1" width="10"/><col min="2" max="2" width="36"/>'+
+  '<col min="3" max="3" width="12"/><col min="4" max="4" width="20"/>'+
+  '<col min="5" max="5" width="13"/><col min="6" max="6" width="58"/></cols><sheetData>';
+  sh.rows.forEach((cells,ri)=>{
+    const r=ri+1;
+    d+='<row r="'+r+'">';
+    cells.forEach((c,ci)=>{
+      const ref=colL(ci)+r, s=c.s||0;
+      if(c.t==='s') d+='<c r="'+ref+'" s="'+s+'" t="inlineStr"><is><t>'+esc(c.v)+'</t></is></c>';
+      else if(c.t==='n') d+='<c r="'+ref+'" s="'+s+'"><v>'+c.v+'</v></c>';
+      else if(c.t==='f') d+='<c r="'+ref+'" s="'+s+'"><f>'+esc(sub(c.f))+'</f><v>'+c.v+'</v></c>';
+      else if(c.t==='fs') d+='<c r="'+ref+'" s="'+s+'" t="str"><f>'+esc(sub(c.f))+'</f><v>'+esc(c.v)+'</v></c>';
+    });
+    d+='</row>';
+  });
+  d+='</sheetData>';
+  if(sh.merges.length) d+='<mergeCells count="'+sh.merges.length+'">'+
+    sh.merges.map(m=>'<mergeCell ref="'+m+'"/>').join('')+'</mergeCells>';
+  d+='</worksheet>';
+  return d;
+}
+
+/* ---------- Đọc input từ DOM ---------- */
+function exNum(id,def){ const el=document.getElementById(id);
+  if(!el) return def; const v=parseFloat(el.value); return isNaN(v)?def:v; }
+function exVal(id,def){ const el=document.getElementById(id); return el?el.value:def; }
+function exChk(id){ const el=document.getElementById(id); return el&&el.checked?1:0; }
+function exText(id){ const el=document.getElementById(id);
+  return el?el.options[el.selectedIndex].text:''; }
+
+const TODAY=new Date();
+const DATE_S=TODAY.toLocaleDateString('vi-VN')+' '+TODAY.toLocaleTimeString('vi-VN');
+const FNAME='BangTinhHutKhoi_'+TODAY.getFullYear()+
+  String(TODAY.getMonth()+1).padStart(2,'0')+String(TODAY.getDate()).padStart(2,'0')+
+  '_'+String(TODAY.getHours()).padStart(2,'0')+String(TODAY.getMinutes()).padStart(2,'0')+'.xlsx';
+
+function sheetHead(sh,title){
+  sh.title(title);
+  sh.sub('Tiêu chuẩn thiết kế HVAC & PCCC — PP tính toán lưu lượng & công suất quạt hút khói | Hạng mục: Thông gió sự cố | Người lập: Kỹ sư HVAC Phạm Văn Trung');
+  sh.sub('Ngày xuất: '+DATE_S+' — Ô VÀNG: số liệu nhập (sửa được) · Ô XANH: công thức Excel (tự tính lại)');
+  sh.header(['Mục','Thông số','Ký hiệu','Giá trị','Đơn vị','Ghi chú / Trích dẫn điều khoản']);
+}
+
+/* ---------- Sheet Tra cứu ---------- */
+function buildLookup(){
+  const sh=newSheet('Tra cứu');
+  sh.title('BẢNG TRA CỨU');
+  sh.sub('Số liệu tra cứu dùng cho các công thức ở sheet TCVN-QCVN');
+  sh.section('H.1','Bảng H.1 — hệ số n theo chiều rộng cửa B');
+  sh.header(['B (m)','n — nhà ở','n — công cộng','','','']);
+  [[0.6,1.00,1.05],[0.9,0.82,0.91],[1.2,0.70,0.80],[1.8,0.51,0.62],[2.4,0.41,0.50]]
+    .forEach(r=>sh.row([{t:'n',v:r[0],s:5},{t:'n',v:r[1],s:5},{t:'n',v:r[2],s:5}]));
+  sh.noteRow('H.1','n nội suy tuyến tính theo B (kẹp 0,6–2,4 m). Kd: số người/cửa ≥ 25 → 1,0; ngược lại 0,8.');
+  sh.section('B1','Bảng 1 — hệ số rò lọt đường ống C');
+  sh.header(['Cấp','C','Mô tả','','','']);
+  [['A',0.027,'thiết bị'],['B',0.009,'ống gió'],['C',0.003,'ống áp cao'],['D',0.001,'đặc biệt']]
+    .forEach(r=>sh.row([{t:'s',v:r[0],s:5},{t:'n',v:r[1],s:5},{t:'s',v:r[2],s:5}]));
+  sh.noteRow('B1','q = C·pt^0,65·10⁻³ (m³/s trên 1 m² bề mặt ống).');
+  sh.section('γ','Trọng lượng riêng khói theo chất cháy (H.3)');
+  [['khí / lỏng',4],['vật rắn',5],['sợi / hành lang',6]]
+    .forEach(r=>sh.row([{t:'s',v:r[0],s:5},{t:'n',v:r[1],s:5},{t:'s',v:'N/m³',s:5}]));
+  return sh;
+}
+
+/* công thức nội suy n Bảng H.1 (dùng bảng ở sheet Tra cứu) */
+function nFormula(T,Bc){
+  const seg=(col)=>"INDEX('Tra cứu'!$"+col+"$2:$"+col+"$6,{k})"+
+    "+({Bc}-INDEX('Tra cứu'!$A$2:$A$6,{k}))/(INDEX('Tra cứu'!$A$2:$A$6,{k}+1)-INDEX('Tra cứu'!$A$2:$A$6,{k}))"+
+    "*(INDEX('Tra cứu'!$"+col+"$2:$"+col+"$6,{k}+1)-INDEX('Tra cứu'!$"+col+"$2:$"+col+"$6,{k}))";
+  return ('IF({T}="nha-o",'+seg('B')+','+seg('C')+')')
+    .replace(/\{T\}/g,T).replace(/\{Bc\}/g,Bc).replace(/\{k\}/g,'{k}');
+}
+
+/* ---------- Sheet TCVN-QCVN ---------- */
+function interpH1js(B,isRes){
+  const xs=[0.6,0.9,1.2,1.8,2.4], ys=isRes?[1.00,0.82,0.70,0.51,0.41]:[1.05,0.91,0.80,0.62,0.50];
+  const Bc=Math.min(2.4,Math.max(0.6,B));
+  if(Bc<=xs[0])return ys[0]; if(Bc>=xs[4])return ys[4];
+  for(let i=0;i<4;i++) if(Bc>=xs[i]&&Bc<=xs[i+1]){
+    const t=(Bc-xs[i])/(xs[i+1]-xs[i]); return ys[i]+t*(ys[i+1]-ys[i]); }
+  return ys[4];
+}
+
+function buildTCVN(){
+  const sh=newSheet('TCVN-QCVN');
+  sheetHead(sh,'BẢNG TÍNH HÚT KHÓI SỰ CỐ — TCVN 5687:2024 · QCVN 06:2022/BXD (SĐ1:2023)');
+  const M=exVal('h_method','h1');
+
+  /* ===== Module B: Phụ lục H ===== */
+  if(M==='h1'){
+    const isRes=exVal('h1_type','cc')==='nha-o';
+    const B=exNum('h1_b',1.2); let H=exNum('h1_h',2.1); H=Math.min(2.5,Math.max(2,H));
+    const ppl=exNum('h1_ppl',1,0)||1, Tsm=exNum('h1_tsm',300);
+    const Kd=ppl>=25?1:0.8, n=interpH1js(B,isRes);
+    const G1=(isRes?3420:4300)*B*n*Math.pow(H,1.5)*(isRes?1:Kd);
+    const rho=353/(Tsm+273), L=G1/rho;
+    sh.section('B','H.1 — Hút khói hành lang / sảnh');
+    sh.inText('B','Loại nhà','',''+exVal('h1_type','cc'),'','H.1a: nha-o (nhà ở) / H.1b: cc (công cộng)','h1T');
+    sh.inNum('B','Rộng cánh cửa lớn nhất','B',B,'m','H.1 — cửa hành lang → thang / ra ngoài','h1B');
+    sh.inNum('B','Chiều cao cửa','H',exNum('h1_h',2.1),'m','H.1 — tự kẹp 2–2,5 m','h1H');
+    sh.inNum('B','Số người thoát qua 1 cửa','',ppl,'người','H.1 → hệ số Kd','h1ppl',1);
+    sh.inNum('B','Nhiệt độ khói','Tsm',Tsm,'°C','giả thiết đổi kg/h → m³/h','h1Tsm');
+    sh.form('B','Chiều cao tính toán (kẹp)','Hc','MIN(MAX({h1H},2),2.5)',H,'m','H.1','h1Hc');
+    sh.form('B','Hệ số Kd','Kd','IF({h1ppl}>=25,1,0.8)',Kd,'—','H.1','h1Kd');
+    sh.form('B','B (kẹp 0,6–2,4)','Bc','MIN(MAX({h1B},0.6),2.4)',Math.min(2.4,Math.max(0.6,B)),'m','nội suy Bảng H.1','h1Bc');
+    sh.form('B','Dòng nội suy','k','MIN(MATCH({h1Bc},\'Tra cứu\'!$A$2:$A$6,1),4)',
+      Math.min(4, [0.6,0.9,1.2,1.8].filter(x=>Math.min(2.4,Math.max(0.6,B))>=x).length),'—','MATCH trên Bảng H.1','k',11);
+    sh.form('B','Hệ số n','n',nFormula('h1T','h1Bc'),n,'—','H.1 — nội suy tuyến tính Bảng H.1 (sheet Tra cứu)','h1n');
+    sh.form('B','Khối lượng khói','G1','IF({h1T}="nha-o",3420,4300)*{h1B}*POWER({h1Hc},1.5)*{h1n}*IF({h1T}="nha-o",1,{h1Kd})',
+      G1,'kg/h','H.1: G1 = 3420·B·n·H^1,5 (nhà ở) / 4300·Kd·B·n·H^1,5 (công cộng)','h1G1');
+    sh.form('B','Mật độ khói','ρsm','353/({h1Tsm}+273)',rho,'kg/m³','ρ = 353/(T+273)','h1rho');
+    sh.form('B','Lưu lượng thể tích','L','{h1G1}/{h1rho}',L,'m³/h','L = G/ρ tại Tsm','h1L');
+    sh.form('B','Lưu lượng thể tích','V','{h1L}/3600',L/3600,'m³/s','','h1V');
+  }
+  else if(M==='h2'){
+    const A=exNum('h2_a',100), spr=exChk('h2_spr'), pfIn=exNum('h2_pf',0),
+          Y=exNum('h2_y',2.5), Ks=parseFloat(exVal('h2_ks','1.0'))||1.0, Tsm=exNum('h2_tsm',300);
+    const Pf=pfIn>0?pfIn:(spr?12:Math.min(12,Math.max(4,0.38*Math.sqrt(A))));
+    const G=678.8*Pf*Math.pow(Y,1.5)*Ks, rho=353/(Tsm+273), L=G/rho;
+    sh.section('B','H.2 — Gian phòng theo chu vi đám cháy');
+    sh.inNum('B','Diện tích phòng / bể khói','A',A,'m²','H.2','h2A');
+    sh.inNum('B','Có sprinkler','',spr,'1/0','H.2 — có sprinkler → Pf = 12 m','h2spr',1);
+    sh.inNum('B','Chu vi đám cháy (nhập tay)','Pf',pfIn,'m','H.2 — trống = tự tính','h2pfIn');
+    sh.inNum('B','Từ mép dưới vùng khói đến sàn','Y',Y,'m','H.2','h2Y');
+    sh.inNum('B','Hệ số Ks','Ks',Ks,'—','H.2: 1,0 hút cơ khí / 1,2 hút tự nhiên + sprinkler','h2Ks');
+    sh.inNum('B','Nhiệt độ khói','Tsm',Tsm,'°C','giả thiết','h2Tsm');
+    sh.form('B','Chu vi đám cháy tính toán','Pf','IF({h2pfIn}>0,{h2pfIn},IF({h2spr}=1,12,MIN(12,MAX(4,0.38*SQRT({h2A})))))',
+      Pf,'m','H.2 — sprinkler → 12 m; ngược lại 0,38√A (kẹp 4–12 m)','h2Pf');
+    sh.form('B','Khối lượng khói','G','678.8*{h2Pf}*POWER({h2Y},1.5)*{h2Ks}',G,'kg/h','H.2: G = 678,8·Pf·Y^1,5·Ks','h2G');
+    sh.form('B','Mật độ khói','ρsm','353/({h2Tsm}+273)',rho,'kg/m³','','h2rho');
+    sh.form('B','Lưu lượng thể tích','L','{h2G}/{h2rho}',L,'m³/h','','h2L');
+    sh.noteRow('B','Lưu ý H.2: Pf > 12 m hoặc Y > 4 m → xác định lượng khói theo H.3.');
+  }
+  else if(M==='h3'){
+    const Ad=exNum('h3_ad',1), Hmax=exNum('h3_hmax',2), fuel=exVal('h3_fuel','khi'),
+          tv=exNum('h3_tv',35); let v=exNum('h3_v',0); v=v<=1?0:Math.min(v,5);
+    const Ks=parseFloat(exVal('h3_ks','1.0'))||1.0;
+    const h0=0.5*Hmax+0.2, gam={khi:4,ran:5,soi:6}[fuel]||4;
+    const rho_v=353/(tv+273), gam_v=rho_v*9.81;
+    const G1=3564*Ad*Math.sqrt(Math.max(0,h0*(gam_v-gam)*rho_v*rho_v+0.7*v*v*rho_v*rho_v))*Ks;
+    sh.section('B','H.3 — Thoát khói tự nhiên qua cửa');
+    sh.inNum('B','Diện tích tương đương cửa thoát nạn','Ad',Ad,'m²','H.6–H.13','h3Ad');
+    sh.inNum('B','Chiều cao cửa cao nhất','Hmax',Hmax,'m','H.5 — h0 = 0,5·Hmax + 0,2','h3Hmax');
+    sh.inText('B','Dạng chất cháy','',exVal('h3_fuel','khi'),'','H.5: khi (khí/lỏng) / ran (vật rắn) / soi (sợi)','h3fuel');
+    sh.inNum('B','Nhiệt độ không khí ngoài','tv',tv,'°C','H.5','h3tv');
+    sh.inNum('B','Vận tốc gió','v',exNum('h3_v',0),'m/s','H.5 — ≤1 lấy 0, tối đa 5','h3vin');
+    sh.inNum('B','Hệ số Ks','Ks',Ks,'—','H.5','h3Ks');
+    sh.form('B','Chiều cao tính toán','h0','0.5*{h3Hmax}+0.2',h0,'m','H.5','h3h0');
+    sh.form('B','Trọng lượng riêng khói','γ','IF({h3fuel}="khi",4,IF({h3fuel}="ran",5,6))',gam,'N/m³','H.5','h3gam');
+    sh.form('B','Gió tính toán','vtt','IF({h3vin}<=1,0,MIN({h3vin},5))',v,'m/s','H.5','h3v');
+    sh.form('B','Mật độ không khí','ρv','353/({h3tv}+273)',rho_v,'kg/m³','','h3rhov');
+    sh.form('B','Trọng lượng riêng KK','γv','{h3rhov}*9.81',gam_v,'N/m³','','h3gamv');
+    sh.form('B','Khối lượng khói','G1','3564*{h3Ad}*SQRT(MAX(0,{h3h0}*({h3gamv}-{h3gam})*POWER({h3rhov},2)+0.7*POWER({h3v},2)*POWER({h3rhov},2)))*{h3Ks}',
+      G1,'kg/h','H.3 — thoát khói tự nhiên qua cửa','h3G1');
+    sh.noteRow('B','Ad chi tiết tính theo H.6–H.13 (cửa đơn/kép, buồng đệm, hệ số K1/K2/K3).');
+  }
+  else if(M==='gv'){
+    const Av=exNum('gv_av',0), dp=exNum('gv_dp',0), n=exNum('gv_n',1);
+    const Gv=40.3*Math.sqrt(Av*dp)*n;
+    sh.section('B','Đ.7.4b — Rò lọt qua van khói đóng');
+    sh.inNum('B','Diện tích tiết diện van','Av',Av,'m²','Đ.7.4b','gvAv');
+    sh.inNum('B','Chênh áp hai phía van','ΔP',dp,'Pa','Đ.7.4b','gvdp');
+    sh.inNum('B','Số van đóng','n',n,'van','Đ.7.4b','gvn',1);
+    sh.form('B','Rò lọt qua van đóng','Gv','40.3*SQRT({gvAv}*{gvdp})*{gvn}',Gv,'kg/h','Đ.7.4b: Gv = 40,3·√(Av·ΔP)·n — cộng vào lưu lượng hút cơ khí (Đ.7.4)','gvGv');
+  }
+  else if(M==='leak'){
+    const C=parseFloat(exVal('lk_cls','0.009'))||0.009, pt=exNum('lk_pt',0), area=exNum('lk_area',0);
+    const q=C*Math.pow(pt,0.65)*1e-3, Q=q*area*3600;
+    sh.section('B','Bảng 1 — Rò lọt đường ống');
+    sh.inNum('B','Hệ số C (cấp độ kín)','C',C,'—','Bảng 1: A 0,027 / B 0,009 / C 0,003 / D 0,001','lkC');
+    sh.inNum('B','Áp suất tĩnh trong ống','pt',pt,'Pa','Bảng 1','lkpt');
+    sh.inNum('B','Diện tích bề mặt ống','',area,'m²','Bảng 1','lkarea');
+    sh.form('B','Rò lọt đơn vị','q','{lkC}*POWER({lkpt},0.65)*0.001',q,'m³/s·m²','Bảng 1: q = C·pt^0,65·10⁻³','lkq');
+    sh.form('B','Rò lọt đường ống','Q','{lkq}*{lkarea}*3600',Q,'m³/h','cộng vào lưu lượng quạt','lkQ');
+  }
+
+  /* ===== Module C: Cấp bù ===== */
+  {
+    const Gsm=exNum('mu_gsm',0), Ta=exNum('mu_ta',35), Tsm=exNum('mu_tsm',300), n=exNum('mu_n',0);
+    const Ga=Gsm/(1-n), rho_a=353/(Ta+273), La=Ga/rho_a;
+    const rho_sm=353/(Tsm+273), Lsm=Gsm/rho_sm;
+    sh.section('C','Cấp bù — TCVN 5687:2024 Phụ lục G.7.4');
+    sh.inNum('C','Khối lượng khói thải','Gsm',Gsm,'kg/h','lấy từ Phụ lục H','muGsm');
+    sh.inNum('C','Nhiệt độ khí cấp','Ta',Ta,'°C','G.11','muTa');
+    sh.inNum('C','Nhiệt độ khói thải','Tsm',Tsm,'°C','G.12','muTsm');
+    sh.inNum('C','Hệ số mất cân bằng','n',n,'—','G.10 / G.7.1: 85–95%','mun');
+    sh.form('C','Khối lượng khí bù','Ga','{muGsm}/(1-{mun})',Ga,'kg/h','G.10: Ga = Gsm/(1−n)','muGa');
+    sh.form('C','Mật độ khí bù','ρa','353/({muTa}+273)',rho_a,'kg/m³','G.11','murhoa');
+    sh.form('C','Lưu lượng khí bù','La','{muGa}/{murhoa}',La,'m³/h','G.11: La = Ga/ρa (theo KHỐI LƯỢNG)','muLa');
+    sh.form('C','Mật độ khói','ρsm','353/({muTsm}+273)',rho_sm,'kg/m³','G.12','murhosm');
+    sh.form('C','Lưu lượng khói thải','Lsm','{muGsm}/{murhosm}',Lsm,'m³/h','G.12','muLsm');
+    sh.form('C','Tỷ lệ thể tích La/Lsm','', '{muLa}/{muLsm}',La/(Lsm||1),'','G.12: La = Lsm·Ta/Tsm (nhiệt độ tuyệt đối)','muratio',12);
+    sh.noteRow('C','Cấp bù THEO KHỐI LƯỢNG (G.7.1: 85–95% lượng khói thải; G.7.2: cấp bù cơ khí < khói thải).');
+  }
+
+  /* ===== Module C: Tăng áp ===== */
+  {
+    const Nf=exNum('pr_floors',0), perF=exNum('pr_perfloor',0);
+    const Nopen=Math.min(exNum('pr_open',0),Nf*perF);
+    const Ad=exNum('pr_adoor',0), v=exNum('pr_v',1.3);
+    const Agap=exNum('pr_agap',0), Cd=exNum('pr_cd',0.65);
+    const dP=exNum('pr_dp',30), mg=exNum('pr_margin',0);
+    const Qopen=Nopen*Ad*v, Nclosed=Math.max(0,Nf*perF-Nopen);
+    const qgap=Cd*Agap*Math.sqrt(2*dP/1.2), Qclosed=Nclosed*qgap;
+    const Qt=(Qopen+Qclosed)*(1+mg/100), Qh=Qt*3600, F=dP*Ad/2;
+    sh.section('C','Tăng áp cầu thang — TCVN 5687 Đ.6.8.6 · QCVN 06 D.12');
+    sh.inNum('C','Số tầng tăng áp','',Nf,'tầng','Đ.6.8.6','prNf',1);
+    sh.inNum('C','Số cửa / tầng','',perF,'cửa','Đ.6.8.6','prperF',1);
+    sh.inNum('C','Cửa mở đồng thời (nhập)','',exNum('pr_open',0),'cửa','Đ.6.8.6b — không vượt tổng số cửa','prOpenIn',1);
+    sh.inNum('C','Diện tích 1 cửa','Acửa',Ad,'m²','Đ.6.8.6b','prAd');
+    sh.inNum('C','Vận tốc qua cửa mở','v',v,'m/s','Đ.6.8.6b — v ≥ 1,3 m/s','prv');
+    sh.inNum('C','Khe hở 1 cửa đóng','Akhe',Agap,'m²','Đ.6.8.6b — rò lọt khe cửa','prAgap');
+    sh.inNum('C','Hệ số lưu lượng khe','Cd',Cd,'—','phương trình lỗ','prCd');
+    sh.inNum('C','Áp suất dư','ΔP',dP,'Pa','QCVN 06 D.12: 20–50 Pa','prdP');
+    sh.inNum('C','Dự phòng rò lọt hệ thống','',mg,'%','thực hành thiết kế','prmg');
+    sh.form('C','Cửa mở đồng thời (tính)','Nmở','MIN({prOpenIn},{prNf}*{prperF})',Nopen,'cửa','','prNopen',11);
+    sh.form('C','Cửa đóng','Nđóng','MAX(0,{prNf}*{prperF}-{prNopen})',Nclosed,'cửa','','prNclosed',11);
+    sh.form('C','Qua cửa mở','Qmở','{prNopen}*{prAd}*{prv}',Qopen,'m³/s','Đ.6.8.6b: Q = N·A·v','prQopen');
+    sh.form('C','Qua cửa mở','', '{prQopen}*3600',Qopen*3600,'m³/h','','prQopenH');
+    sh.form('C','Rò lọt 1 cửa đóng','q','{prCd}*{prAgap}*SQRT(2*{prdP}/1.2)',qgap,'m³/s','phương trình lỗ: q = Cd·A·√(2ΔP/ρ)','prqgap');
+    sh.form('C','Rò lọt cửa đóng','Qđóng','{prNclosed}*{prqgap}',Qclosed,'m³/s','','prQclosed');
+    sh.form('C','Rò lọt cửa đóng','', '{prQclosed}*3600',Qclosed*3600,'m³/h','','prQclosedH');
+    sh.form('C','Tổng lưu lượng','Qt','({prQopen}+{prQclosed})*(1+{prmg}/100)',Qt,'m³/s','gồm dự phòng','prQt');
+    sh.form('C','LƯU LƯỢNG QUẠT TĂNG ÁP','Q','{prQt}*3600',Qh,'m³/h','','prQh');
+    sh.form('C','Lực mở cửa','F','{prdP}*{prAd}/2',F,'N','EN 12101-6 — QCVN 06 D.1.6: ≤ 100 N','prF');
+    sh.formStr('C','Kiểm tra áp suất dư','','IF(AND({prdP}>=20,{prdP}<=50),"ĐẠT","KHÔNG ĐẠT")',
+      (dP>=20&&dP<=50)?'ĐẠT':'KHÔNG ĐẠT','QCVN 06 D.12: ΔP ∈ [20, 50] Pa','prChkP');
+    sh.formStr('C','Kiểm tra lực mở cửa','','IF({prF}<=100,"ĐẠT","KHÔNG ĐẠT")',
+      F<=100?'ĐẠT':'KHÔNG ĐẠT','QCVN 06 D.1.6: F ≤ 100 N','prChkF');
+  }
+  return sh;
+}
+
+/* ===== Module D: Khí động ống gió — chèn vào buildTCVN trước return ===== */
+function buildTCVN_duct(sh){
+  const Qmh=exNum('du_q',1000), Qms=Qmh/3600, L=exNum('du_len',0);
+  const s=(document.getElementById('du_size').value||'').trim().toLowerCase();
+  const m=s.match(/(\d+)\s*x\s*(\d+)/);
+  const shape=exVal('du_shape','rect'), byF=exVal('du_method','friction')==='friction';
+  const target=exNum('du_target',1);
+  sh.section('D','Khí động ống gió — SMACNA (Darcy–Weisbach + Haaland)');
+  sh.inNum('D','Lưu lượng','Q',Qmh,'m³/h','lưu lượng hút / cấp bù','duQ');
+  sh.inText('D','Dạng ống','',shape==='round'?'tròn':'chữ nhật','','','');
+  sh.inText('D','Phương pháp chọn','',byF?('đẳng ma sát, mục tiêu '+target+' Pa/m'):('vận tốc, mục tiêu '+target+' m/s'),'',
+    'kích thước đã chọn trên web — có thể sửa a/b dưới đây','');
+  if(m||/^\d+$/.test(s)){
+    let a,b,round;
+    if(m){ a=+m[1]; b=+m[2]; round=false; } else { a=parseFloat(s)||500; b=a; round=true; }
+    const W=a/1000, Hh=b/1000;
+    const A=round?Math.PI*W*W/4:W*Hh, v=Qms/A;
+    const De=round?W:1.3*Math.pow(W*Hh,0.625)/Math.pow(W+Hh,0.25);
+    const rho=1.2, nu=1.81e-5/rho, Re=v*De/nu;
+    const xx=-1.8*Math.log10(Math.pow(0.00009/De/3.7,1.11)+6.9/Re);
+    const f=1/(xx*xx), dpM=f*(rho*v*v/2)/De, dpdyn=rho*v*v/2, dpf=L*dpM;
+    if(round){
+      sh.inNum('D','Đường kính','Ø',a,'mm','kích thước đã chọn (làm tròn 50 mm)','dua',1);
+      sh.form('D','Diện tích','A','PI()*POWER({dua}/1000,2)/4',A,'m²','','duA');
+      sh.form('D','ĐK tương đương','De','{dua}/1000',De,'m','ống tròn','duDe');
+    }else{
+      sh.inNum('D','Cạnh a','a',a,'mm','kích thước đã chọn (làm tròn 50 mm)','dua',1);
+      sh.inNum('D','Cạnh b','b',b,'mm','','dub',1);
+      sh.form('D','Diện tích','A','{dua}*{dub}/1000000',A,'m²','','duA');
+      sh.form('D','ĐK tương đương','De','1.3*POWER(({dua}/1000)*({dub}/1000),0.625)/POWER(({dua}/1000)+({dub}/1000),0.25)',
+        De,'m','Huebscher — SMACNA','duDe');
+    }
+    sh.form('D','Vận tốc','v','{duQ}/3600/{duA}',v,'m/s','3–12 m/s (SMACNA)','duV');
+    sh.form('D','Reynolds','Re','{duV}*{duDe}/(1.81E-5/1.2)',Re,'—','ν = μ/ρ = 1,81e-5/1,2','duRe');
+    sh.form('D','Hệ số ma sát','f','1/POWER(-1.8*LOG10(POWER(0.00009/{duDe}/3.7,1.11)+6.9/{duRe}),2)',
+      f,'—','Haaland — ε = 0,09 mm (tôn mạ kẽm)','duf');
+    sh.form('D','Áp suất động','pđ','1.2*POWER({duV},2)/2',dpdyn,'Pa','ρv²/2','dupd');
+    sh.form('D','Ma sát đơn vị','Δp/L','{duf}*{dupd}/{duDe}',dpM,'Pa/m','Darcy–Weisbach','dudpm');
+    sh.inNum('D','Chiều dài đoạn ống','L',L,'m','','duL');
+    sh.form('D','Tổn thất ma sát','Δpf','{duL}*{dudpm}',dpf,'Pa','','dudpf');
+    const FITN=[['Co 90° trơn (R/D ≥ 1)',0.20],['Co 90° gấp (miter)',0.50],
+      ['Tê rẽ nhánh 90°',0.90],['Tê đi thẳng',0.25],['Chạc 3 xiên 45°',0.40],
+      ['Côn thu',0.10],['Côn mở',0.35],['Van bướm mở hết',0.25],
+      ['Van khói',0.60],['Miệng hút có lưới',1.50],
+      ['Cửa vào quạt',0.50],['Cửa ra quạt',1.00]];
+    const dpRefs=['{dudpf}']; let total=dpf;
+    FITN.forEach((fn,i)=>{
+      const nm=fn[0], ze=fn[1], q=Math.max(0,Math.round(exNum('fit_'+i,0)));
+      if(q>0){
+        const dp=ze*q*dpdyn, qn='fitq'+i, zn='fitz'+i, dn='fitdp'+i;
+        total+=dp;
+        sh.inNum('D',nm+' — số lượng','SL',q,'cái','ζ = '+ze,qn,1);
+        const rz=sh.row([{t:'s',v:'D',s:5},{t:'s',v:nm+' — hệ số',s:5},{t:'s',v:'ζ',s:6},
+          {t:'n',v:ze,s:5},{t:'s',v:'—',s:5},{t:'s',v:'SMACNA',s:13}]);
+        sh.refs[zn]='D'+rz;
+        sh.form('D',nm+' — tổn thất','Δp','{'+qn+'}*{'+zn+'}*{dupd}',dp,'Pa','ζ·SL·ρv²/2',dn);
+        dpRefs.push('{'+dn+'}');
+      }
+    });
+    sh.form('D','TỔNG TỔN THẤT ĐOẠN ỐNG','ΔP',dpRefs.join('+'),total,'Pa',
+      'ΔP = L·(Δp/L) + Σζ·ρv²/2 — SMACNA HVAC Systems Duct Design','duTot');
+    sh.noteRow('D','Dùng thay cho ΔP ước tính ở tab NFPA 92.');
+  }else{
+    sh.noteRow('D','Chưa có kích thước ống — bấm «Tính chọn ống» trên web rồi xuất lại.');
+  }
+}
+
+/* ---------- Sheet NFPA 92 ---------- */
+function buildNFPA(){
+  const sh=newSheet('NFPA 92');
+  sheetHead(sh,'BẢNG TÍNH HÚT KHÓI — NFPA 92:2024 (AXISYMMETRIC PLUME)');
+  const Af=exNum('A_f',2000), H=exNum('H',8), Q=exNum('Q',5000), z=exNum('z',3.2),
+        Ta=exNum('T_a',30), Xc=exNum('X_c',0.70), cp=exNum('c_p',1.005),
+        eta=exNum('eta',75), dP=exNum('dP',300);
+  const Qc=Xc*Q, zl=0.166*Math.pow(Qc,0.4), strong=z>=zl;
+  const mdot=strong?0.071*Math.pow(Qc,1/3)*Math.pow(z,5/3)+0.0018*Qc:0.032*Math.pow(Qc,0.6)*z;
+  const dTs=Qc/(mdot*cp), Ts=Ta+dTs, rho_s=353/(Ts+273);
+  const Qv=mdot/rho_s, Qex=Qv*3600;
+  const rho_a=353/(Ta+273), mmk=0.9*mdot, Qvmk=mmk/rho_a, Qmk=Qvmk*3600;
+  const nmk=Math.max(1,Math.ceil(Qmk/30000)), qmk=Qmk/nmk, grille=Qvmk/1.02;
+  const nf=Math.max(2,Math.ceil(Qex/30000)), qf=Qex/nf;
+  const pkw=(Qv*dP)/(eta/100)/1000, pfan=pkw/nf;
+  const darea=Qv/nf/5, dmm=Math.ceil(Math.sqrt(darea)*1000/50)*50;
+  const mkarea=Qvmk/nmk/5, mkmm=Math.ceil(Math.sqrt(mkarea)*1000/50)*50;
+  sh.section('IN','Số liệu đầu vào');
+  sh.inNum('IN','Diện tích sàn','Af',Af,'m²','ghi chép hồ sơ (không tham gia công thức plume)','Af');
+  sh.inNum('IN','Chiều cao không gian','H',H,'m','§4.5.1.3 — lớp khói ≥ 20%H','H');
+  sh.inNum('IN','Công suất tỏa nhiệt','Q',Q,'kW','Annex B — HRR thiết kế','Q');
+  sh.inNum('IN','Chiều cao mặt phân cách','z',z,'m','§5.5.1','z');
+  sh.inNum('IN','Nhiệt độ môi trường','Ta',Ta,'°C','','Ta');
+  sh.inNum('IN','Tỷ lệ đối lưu','χc',Xc,'—','mặc định 0,70','Xc');
+  sh.inNum('IN','Nhiệt dung riêng','cp',cp,'kJ/kg·K','','cp');
+  sh.inNum('IN','Hiệu suất quạt','η',eta,'%','','eta');
+  sh.inNum('IN','Tổn thất áp quạt','ΔP',dP,'Pa','ước tính — dùng ΔP ống gió SMACNA (tab TCVN) để thay','dPq');
+  sh.section('1','Cột khói (plume)');
+  sh.form('1','Công suất đối lưu','Qc','{Xc}*{Q}',Qc,'kW','Qc = χc·Q','Qc');
+  sh.form('1','Chiều cao ngọn lửa TB','zl','0.166*POWER({Qc},0.4)',zl,'m','Eq. 5.5.1.1','zl');
+  sh.formStr('1','Chế độ plume','','IF({z}>={zl},"Trên ngọn lửa (strong)","Trong ngọn lửa (flame)")',
+    strong?'Trên ngọn lửa (strong)':'Trong ngọn lửa (flame)','§5.5.1 — z ≥ zl: strong','chedo');
+  sh.form('1','Lưu lượng khối khói','mp','IF({z}>={zl},0.071*POWER({Qc},1/3)*POWER({z},5/3)+0.0018*{Qc},0.032*POWER({Qc},0.6)*{z})',
+    mdot,'kg/s','Eq. 5.5.1.2 (strong) / 5.5.1.3 (flame)','mdot');
+  sh.form('1','Độ tăng nhiệt khói','ΔTs','{Qc}/({mdot}*{cp})',dTs,'K','ΔTs = Qc/(ṁ·cp)','dTs');
+  sh.form('1','Nhiệt độ khói tại z','Ts','{Ta}+{dTs}',Ts,'°C','','Ts');
+  sh.form('1','Mật độ khói','ρs','353/({Ts}+273)',rho_s,'kg/m³','','rhos');
+  sh.section('2','Hút khói');
+  sh.form('2','Lưu lượng thể tích','Qv','{mdot}/{rhos}',Qv,'m³/s','','Qv');
+  sh.form('2','LƯU LƯỢNG HÚT','Qhut','{Qv}*3600',Qex,'m³/h','','Qex');
+  sh.form('2','Số quạt hút','n','MAX(2,CEILING({Qex}/30000,1))',nf,'quạt','mỗi quạt ~30.000 m³/h, tối thiểu 2','nf',11);
+  sh.form('2','Lưu lượng mỗi quạt','','{Qex}/{nf}',qf,'m³/h','','qf');
+  sh.form('2','Công suất quạt hút','P','{Qv}*{dPq}/({eta}/100)/1000',pkw,'kW','P = Qv·ΔP/η','pkw');
+  sh.form('2','Công suất mỗi quạt','','{pkw}/{nf}',pfan,'kW','','pfan');
+  sh.form('2','Tiết diện ống hút','A','{Qv}/{nf}/5',darea,'m²','v = 5 m/s','darea');
+  sh.form('2','Cạnh ống vuông','a','CEILING(SQRT({darea})*1000,50)',dmm,'mm','làm tròn lên 50 mm','dmm',11);
+  sh.section('3','Cấp khí bù (theo khối lượng)');
+  sh.form('3','Mật độ khí bù','ρa','353/({Ta}+273)',rho_a,'kg/m³','§4.4.4.1','rhoa');
+  sh.form('3','Khối lượng khí bù','mmk','0.9*{mdot}',mmk,'kg/s','§4.4.4.1.2 — 90% khối lượng hút (85–95%)','mmk');
+  sh.form('3','Lưu lượng thể tích bù','Qv,bù','{mmk}/{rhoa}',Qvmk,'m³/s','tại Ta','Qvmk');
+  sh.form('3','LƯU LƯỢNG BÙ','Qbu','{Qvmk}*3600',Qmk,'m³/h','','Qmk');
+  sh.form('3','Số quạt cấp bù','n','MAX(1,CEILING({Qmk}/30000,1))',nmk,'quạt','','nmk',11);
+  sh.form('3','Lưu lượng mỗi quạt bù','','{Qmk}/{nmk}',qmk,'m³/h','','qmk');
+  sh.form('3','Diện tích miệng cấp','A','{Qvmk}/1.02',grille,'m²','§4.4.4.1.4 — v ≤ 1,02 m/s','grille');
+  sh.form('3','Cạnh ống cấp bù','a','CEILING(SQRT({Qvmk}/{nmk}/5)*1000,50)',mkmm,'mm','v = 5 m/s','mkmm',11);
+  sh.section('4','Kiểm tra');
+  sh.form('4','Mật độ cháy thiết kế','q','{Q}/{Af}',Q/Af,'kW/m²','q = Q/Af — chỉ tiêu hồ sơ','qd');
+  sh.formStr('4','Chiều cao mặt phân cách','','IF({z}>=2.1,"ĐẠT","XEM LẠI")',
+    z>=2.1?'ĐẠT':'XEM LẠI','z ≥ 2,1 m','ckz');
+  sh.formStr('4','Nhiệt độ khói','','IF({Ts}<=200,"ĐẠT","XEM LẠI")',
+    Ts<=200?'ĐẠT':'XEM LẠI','Ts ≤ 200°C — tiêu chí duy trì được (Annex)','ckTs');
+  sh.formStr('4','Lớp khói ≥ 20%H','','IF({z}<{H}*0.8,"ĐẠT","XEM LẠI")',
+    z<H*0.8?'ĐẠT':'XEM LẠI','§4.5.1.3','ckH');
+  return sh;
+}
+
+/* ---------- Xuất file ---------- */
+function exportExcel(){
+  try{
+    const tcvn=buildTCVN();
+    buildTCVN_duct(tcvn);           // chèn Module D vào cuối sheet TCVN
+    const sheets=[tcvn,buildNFPA(),buildLookup()];
+    let wbk='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '+
+      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>';
+    sheets.forEach((s,i)=>{ wbk+='<sheet name="'+esc(s.name)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>'; });
+    wbk+='</sheets><calcPr fullCalcOnLoad="1"/></workbook>';
+    const rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '+
+      'Target="xl/workbook.xml"/></Relationships>';
+    let wrels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
+    sheets.forEach((s,i)=>{ wrels+='<Relationship Id="rId'+(i+1)+
+      '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" '+
+      'Target="worksheets/sheet'+(i+1)+'.xml"/>'; });
+    wrels+='<Relationship Id="rId'+(sheets.length+1)+
+      '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" '+
+      'Target="styles.xml"/></Relationships>';
+    let ctype='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+      '<Default Extension="rels" ContentType="application/vnd.open-package.relationships+xml"/>'+
+      '<Default Extension="xml" ContentType="application/xml"/>'+
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+
+      '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>';
+    sheets.forEach((s,i)=>{ ctype+='<Override PartName="/xl/worksheets/sheet'+(i+1)+
+      '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'; });
+    ctype+='</Types>';
+    const files=[
+      {name:'[Content_Types].xml',data:ctype},
+      {name:'_rels/.rels',data:rels},
+      {name:'xl/workbook.xml',data:wbk},
+      {name:'xl/_rels/workbook.xml.rels',data:wrels},
+      {name:'xl/styles.xml',data:STYLES}
+    ];
+    sheets.forEach((s,i)=>files.push({name:'xl/worksheets/sheet'+(i+1)+'.xml',data:sheetXML(s)}));
+    const blob=zipStore(files);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download=FNAME;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500);
+  }catch(err){
+    alert('Xuất Excel thất bại: '+err.message);
+  }
+}
+window.exportExcel=exportExcel;
+})();
 
 </script>
 </body>
