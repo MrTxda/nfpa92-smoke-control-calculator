@@ -8,7 +8,8 @@
   ───────────────────────────────────────────────────────────
   v1.7 — 2026-10-12: xuất bảng tính Excel (.xlsx) — công thức sống + ghi chú điều khoản
   v1.8 — 2026-10-12: công suất quạt chọn cho hút khói / bù khí / tăng áp (P, số quạt, P/quạt)
-  Phiên bản v1.8 — 2026-10-12
+  v1.9 — 2026-10-12: tổng lưu lượng chọn quạt = khói chính + rò lọt van (7.4b) + rò lọt ống (Bảng 1)
+  Phiên bản v1.9 — 2026-10-12
   ═══════════════════════════════════════════════════════════
 -->
 <html lang="vi">
@@ -1072,6 +1073,14 @@
               <div class="input-row"><input type="number" id="fan_dp" value="400" min="50" step="10"><span class="unit-tag">Pa</span></div>
               <span class="hint">lấy từ Module D (ống gió)</span></div>
           </div>
+          <div class="form-grid2" style="margin-top:8px">
+            <div class="input-group"><label>🌀 Rò lọt van đóng <span class="cite">7.4b</span></label>
+              <div class="input-row"><input type="number" id="leak_gv" value="0" min="0" step="10"><span class="unit-tag">kg/h</span></div>
+              <span class="hint">lấy từ kết quả tính Đ.7.4b</span></div>
+            <div class="input-group"><label>🌀 Rò lọt đường ống <span class="cite">Bảng 1</span></label>
+              <div class="input-row"><input type="number" id="leak_duct" value="0" min="0" step="10"><span class="unit-tag">m³/h</span></div>
+              <span class="hint">lấy từ kết quả tính Bảng 1</span></div>
+          </div>
           </div>
 
           <!-- H.1 -->
@@ -1768,7 +1777,7 @@ function calculate() {
     <div style="font-size:0.72rem;color:var(--muted);padding:8px 2px;line-height:1.6;border-top:1px solid var(--border);padding-top:12px;">
       <strong>Tài liệu tham chiếu:</strong> NFPA 92:2024 Standard for Smoke Control Systems ·
       Kết quả dựa trên mô hình Axisymmetric Plume (§5.5.1) ·
-      Phiên bản 1.8 — 2026-10-12 (công suất quạt) ·
+      Phiên bản 1.9 — 2026-10-12 (tổng lưu lượng chọn quạt) ·
       Cần kiểm tra thêm: tầm nhìn trong khói, thời gian sơ tán, bố trí miệng hút theo mặt bằng thực tế.
     </div>
 
@@ -1970,6 +1979,21 @@ function fanBlockHTML(title,Qmh,dp,eta,extra){
     +`<div style="font-size:0.7rem;color:var(--muted)">P = Q·ΔP/η = ${(Qmh/3600).toFixed(2)} m³/s × ${dp} Pa / ${eta}%`
     +` · mỗi quạt ~30.000 m³/h${extra||''}</div></div></div>`;
 }
+/* Tổng lưu lượng chọn quạt = khói chính + rò lọt van + rò lọt ống */
+function leakTotalHTML(method,L,Gv_kg,Lgv,Qlk,Ltot,rho,dpF,etaF){
+  const f=fanPowerK(Ltot,dpF,etaF);
+  return `<div class="check-row pass" style="margin-top:8px"><span class="check-icon">🌀</span><div>`
+    +`<strong>TỔNG LƯU LƯỢNG CHỌN QUẠT HÚT KHÓI:</strong>`
+    +`<div style="font-size:0.78rem;margin-top:4px;line-height:1.8">`
+    +`• Khói chính (${method}): <strong>${L.toFixed(0)} m³/h</strong><br>`
+    +`• Rò lọt van đóng (Đ.7.4b): ${Gv_kg.toFixed(0)} kg/h → <strong>${Lgv.toFixed(0)} m³/h</strong><br>`
+    +`• Rò lọt đường ống (Bảng 1): <strong>${Qlk.toFixed(0)} m³/h</strong><br>`
+    +`• <strong>TỔNG: ${Ltot.toFixed(0)} m³/h</strong></div>`
+    +`<div style="margin-top:4px"><strong>Công suất quạt:</strong> P = <strong>${f.P.toFixed(1)} kW</strong>`
+    +` → chọn <strong>${f.n} quạt</strong> × ${f.per.toFixed(1)} kW/quạt</div>`
+    +`<div style="font-size:0.7rem;color:var(--muted)">P = Q·ΔP/η = ${(Ltot/3600).toFixed(2)} m³/s × ${dpF} Pa / ${etaF}%`
+    +` (ρ_sm = ${rho.toFixed(3)} kg/m³ tại Tsm) · mỗi quạt ~30.000 m³/h</div></div></div>`;
+}
 function tcvn_h1(){
   const g=id=>document.getElementById(id);
   const isRes=g('h1_type').value==='nha-o';
@@ -1980,7 +2004,9 @@ function tcvn_h1(){
   const G1=(isRes?3420:4300)*B*n*Math.pow(H,1.5)*(isRes?1:Kd);
   const rho=353/(Tsm+273), L=G1/rho;
   const etaF=+g('fan_eta').value||75, dpF=+g('fan_dp').value||400;
-  const fanH1=fanBlockHTML('Công suất quạt hút khói',L,dpF,etaF,' · rò lọt van/ống (Đ.7.4b/Bảng 1) cộng vào Q trước khi chọn quạt');
+  const GvLk=+g('leak_gv').value||0, Qlk=+g('leak_duct').value||0;
+  const Lgv=GvLk/rho, Ltot=L+Lgv+Qlk;
+  const fanH1=leakTotalHTML('H.1',L,GvLk,Lgv,Qlk,Ltot,rho,dpF,etaF);
   g('h_out').innerHTML=`<div class="anim">${EXCEL_BTN}
     <div class="results-grid">
       <div class="res-card highlight"><div class="res-label">Khối lượng khói G1</div><div class="res-value">${(G1/1000).toFixed(1)}</div><div class="res-unit">× 10³ kg/h</div><div class="res-ref">${isRes?'H.1a':'H.1b'} · Kd=${Kd} · n=${n.toFixed(3)}</div></div>
@@ -2001,7 +2027,9 @@ function tcvn_h2(){
   const G=678.8*Pf*Math.pow(Y,1.5)*Ks;
   const rho=353/(Tsm+273), L=G/rho;
   const etaF=+g('fan_eta').value||75, dpF=+g('fan_dp').value||400;
-  const fanH2=fanBlockHTML('Công suất quạt hút khói',L,dpF,etaF,' · rò lọt van/ống (Đ.7.4b/Bảng 1) cộng vào Q trước khi chọn quạt');
+  const GvLk=+g('leak_gv').value||0, Qlk=+g('leak_duct').value||0;
+  const Lgv=GvLk/rho, Ltot=L+Lgv+Qlk;
+  const fanH2=leakTotalHTML('H.2',L,GvLk,Lgv,Qlk,Ltot,rho,dpF,etaF);
   const warn=(Pf>12||Y>4)?'<div class="note-box" style="margin-top:8px">⚠️ Pf &gt; 12 m hoặc Y &gt; 4 m → xác định lượng khói theo <b>H.3</b>.</div>':'';
   g('h_out').innerHTML=`<div class="anim">${EXCEL_BTN}
     <div class="results-grid">
@@ -2470,11 +2498,17 @@ function buildTCVN(){
     sh.form('B','Lưu lượng thể tích','L','{h1G1}/{h1rho}',L,'m³/h','L = G/ρ tại Tsm','h1L');
     sh.form('B','Lưu lượng thể tích','V','{h1L}/3600',L/3600,'m³/s','','h1V');
     const etaF=exNum('fan_eta',75), dpF=exNum('fan_dp',400);
-    const Pfan=L/3600*dpF/(etaF/100)/1000, nfan=Math.max(1,Math.ceil(L/30000));
+    const GvLk=exNum('leak_gv',0), Qlk=exNum('leak_duct',0);
+    const Lgv=GvLk/rho, Ltot=L+Lgv+Qlk;
+    const Pfan=Ltot/3600*dpF/(etaF/100)/1000, nfan=Math.max(1,Math.ceil(Ltot/30000));
     sh.inNum('B','Hiệu suất quạt hút','η',etaF,'%','','fanEta');
     sh.inNum('B','Tổn thất áp quạt hút','ΔP',dpF,'Pa','lấy từ Module D (ống gió)','fanDp');
-    sh.form('B','CÔNG SUẤT QUẠT HÚT','P','{h1V}*{fanDp}/({fanEta}/100)/1000',Pfan,'kW','P = Q·ΔP/η','fanP');
-    sh.form('B','Số quạt hút','n','MAX(1,CEILING({h1L}/30000,1))',nfan,'quạt','mỗi quạt ~30.000 m³/h','fann',11);
+    sh.inNum('B','Rò lọt van đóng','Gv',GvLk,'kg/h','Đ.7.4b — nhập từ kết quả tính van','leakGv');
+    sh.inNum('B','Rò lọt đường ống','',Qlk,'m³/h','Bảng 1 — nhập từ kết quả tính ống','leakQ');
+    sh.form('B','Rò lọt van (quy đổi)','','{leakGv}/{h1rho}',Lgv,'m³/h','tại Tsm','leakLgv');
+    sh.form('B','TỔNG LƯU LƯỢNG CHỌN QUẠT','Ltot','{h1L}+{leakLgv}+{leakQ}',Ltot,'m³/h','','h1Ltot');
+    sh.form('B','CÔNG SUẤT QUẠT HÚT','P','{h1Ltot}/3600*{fanDp}/({fanEta}/100)/1000',Pfan,'kW','P = Q·ΔP/η','fanP');
+    sh.form('B','Số quạt hút','n','MAX(1,CEILING({h1Ltot}/30000,1))',nfan,'quạt','mỗi quạt ~30.000 m³/h','fann',11);
     sh.form('B','Công suất mỗi quạt','','{fanP}/{fann}',Pfan/nfan,'kW','','fanPq');
   }
   else if(M==='h2'){
@@ -2495,11 +2529,17 @@ function buildTCVN(){
     sh.form('B','Mật độ khói','ρsm','353/({h2Tsm}+273)',rho,'kg/m³','','h2rho');
     sh.form('B','Lưu lượng thể tích','L','{h2G}/{h2rho}',L,'m³/h','','h2L');
     const etaF2=exNum('fan_eta',75), dpF2=exNum('fan_dp',400);
-    const Pfan2=L/3600*dpF2/(etaF2/100)/1000, nfan2=Math.max(1,Math.ceil(L/30000));
+    const GvLk2=exNum('leak_gv',0), Qlk2=exNum('leak_duct',0);
+    const Lgv2=GvLk2/rho, Ltot2=L+Lgv2+Qlk2;
+    const Pfan2=Ltot2/3600*dpF2/(etaF2/100)/1000, nfan2=Math.max(1,Math.ceil(Ltot2/30000));
     sh.inNum('B','Hiệu suất quạt hút','η',etaF2,'%','','fanEta');
     sh.inNum('B','Tổn thất áp quạt hút','ΔP',dpF2,'Pa','lấy từ Module D (ống gió)','fanDp');
-    sh.form('B','CÔNG SUẤT QUẠT HÚT','P','{h2L}/3600*{fanDp}/({fanEta}/100)/1000',Pfan2,'kW','P = Q·ΔP/η','fanP');
-    sh.form('B','Số quạt hút','n','MAX(1,CEILING({h2L}/30000,1))',nfan2,'quạt','mỗi quạt ~30.000 m³/h','fann',11);
+    sh.inNum('B','Rò lọt van đóng','Gv',GvLk2,'kg/h','Đ.7.4b — nhập từ kết quả tính van','leakGv');
+    sh.inNum('B','Rò lọt đường ống','',Qlk2,'m³/h','Bảng 1 — nhập từ kết quả tính ống','leakQ');
+    sh.form('B','Rò lọt van (quy đổi)','','{leakGv}/{h2rho}',Lgv2,'m³/h','tại Tsm','leakLgv');
+    sh.form('B','TỔNG LƯU LƯỢNG CHỌN QUẠT','Ltot','{h2L}+{leakLgv}+{leakQ}',Ltot2,'m³/h','','h2Ltot');
+    sh.form('B','CÔNG SUẤT QUẠT HÚT','P','{h2Ltot}/3600*{fanDp}/({fanEta}/100)/1000',Pfan2,'kW','P = Q·ΔP/η','fanP');
+    sh.form('B','Số quạt hút','n','MAX(1,CEILING({h2Ltot}/30000,1))',nfan2,'quạt','mỗi quạt ~30.000 m³/h','fann',11);
     sh.form('B','Công suất mỗi quạt','','{fanP}/{fann}',Pfan2/nfan2,'kW','','fanPq');
     sh.noteRow('B','Lưu ý H.2: Pf > 12 m hoặc Y > 4 m → xác định lượng khói theo H.3.');
   }
