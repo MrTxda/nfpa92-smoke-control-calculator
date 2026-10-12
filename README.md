@@ -5,7 +5,7 @@ Bảng tính thiết kế sơ bộ hệ thống hút khói — 2 tab:
 - **🇻🇳 TCVN · QCVN** (mặc định): tính toán theo tiêu chuẩn Việt Nam — xem bảng dưới.
 - **🔥 NFPA 92**: mô hình cột khói đối xứng trục (axisymmetric plume), NFPA 92:2024 §5.5.1.
 
-Mở file `NFPA92_SmokControl_Calculator.html` bằng trình duyệt — không cần
+Mở file `SmokControl_Calculator.html` bằng trình duyệt — không cần
 cài đặt, không cần mạng. Dùng trực tuyến tại:
 https://mrtxda.github.io/smoke-control-calculator/
 
