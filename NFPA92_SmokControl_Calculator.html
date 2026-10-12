@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<!-- NFPA92_SmokControl_Calculator v1.5.1 — 2026-10-12:
-     - HOTFIX: đóng thẻ comment phiên bản đầu file (thiếu --> nuốt <head>+CSS)
-     v1.5 — 2026-10-12:
-     - Dọn giao diện tab TCVN·QCVN: form 2 cột (form-grid2), module Cấp bù·Tăng áp tách 2 thẻ song song,
-       phụ kiện ống gió dạng lưới gọn (fit-grid), nhóm input có tiêu đề mục, header co giãn mobile
-     v1.4 — 2026-10-12:
-     - Tab TCVN·QCVN hiển thị TRƯỚC (mặc định), tab NFPA 92 sau
-     - Tăng áp nâng cấp: tính theo số tầng, số cửa mở đồng thời, rò lọt qua khe cửa đóng
-       (phương trình lỗ q = Cd·A·√(2ΔP/ρ)), kiểm tra ΔP 20–50 Pa (D.12) và lực mở cửa ≤ 100 N (D.1.6)
-     v1.3: thêm tab TCVN·QCVN (xem README)
+<!--
+  ═══════════════════════════════════════════════════════════
+  TIÊU CHUẨN THIẾT KẾ HVAC & PCCC
+  Phương pháp tính toán lưu lượng & công suất quạt hút khói
+  Hạng mục: Thông gió sự cố
+  Người lập: Kỹ sư HVAC Phạm Văn Trung
+  ───────────────────────────────────────────────────────────
+  Phiên bản v1.6 — 2026-10-12
+  ═══════════════════════════════════════════════════════════
 -->
 <html lang="vi">
 <head>
@@ -497,6 +496,28 @@
     margin: 4px 0;
   }
 
+  /* ===== KHUNG TÊN HỒ SƠ ===== */
+  .doc-titleblock {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    border-left: 5px solid var(--accent);
+    padding: 9px 24px;
+    font-size: 0.78rem;
+    color: var(--text);
+  }
+  .doc-titleblock .tb-main {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--primary);
+  }
+  .doc-titleblock .tb-sep { color: var(--border); user-select: none; }
+  .doc-titleblock b { color: var(--primary); }
+
   /* ===== TAB NAV ===== */
   .tab-nav {
     display: flex;
@@ -663,6 +684,16 @@
     </div>
     <div class="header-badge">TCVN 5687<br>2024</div>
   </div>
+</div>
+<!-- KHUNG TÊN HỒ SƠ -->
+<div class="doc-titleblock">
+  <span class="tb-main">Tiêu chuẩn thiết kế HVAC &amp; PCCC</span>
+  <span class="tb-sep">|</span>
+  <span>PP tính toán lưu lượng &amp; công suất quạt hút khói</span>
+  <span class="tb-sep">|</span>
+  <span>Hạng mục: <b>Thông gió sự cố</b></span>
+  <span class="tb-sep">|</span>
+  <span>Người lập: <b>Kỹ sư HVAC Phạm Văn Trung</b></span>
 </div>
 
 <!-- BODY NFPA -->
@@ -1692,7 +1723,7 @@ function calculate() {
     <div style="font-size:0.72rem;color:var(--muted);padding:8px 2px;line-height:1.6;border-top:1px solid var(--border);padding-top:12px;">
       <strong>Tài liệu tham chiếu:</strong> NFPA 92:2024 Standard for Smoke Control Systems ·
       Kết quả dựa trên mô hình Axisymmetric Plume (§5.5.1) ·
-      Phiên bản 1.5.1 — 2026-10-12 (hotfix CSS) ·
+      Phiên bản 1.6 — 2026-10-12 (khung tên hồ sơ) ·
       Cần kiểm tra thêm: tầm nhìn trong khói, thời gian sơ tán, bố trí miệng hút theo mặt bằng thực tế.
     </div>
 
