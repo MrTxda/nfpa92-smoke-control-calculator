@@ -606,6 +606,20 @@
   }
   .fit-item input { width: 56px; padding: 4px 6px; border: 1.5px solid var(--border); border-radius: 5px; font-size: 0.78rem; }
   .fit-z { font-family: var(--mono); color: var(--muted); font-size: 0.68rem; }
+  /* Huy hiệu trích dẫn điều khoản */
+  .cite {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--primary);
+    background: #eaf2f8;
+    border: 1px solid #bcd7ee;
+    border-radius: 3px;
+    padding: 0 5px;
+    margin-left: 5px;
+    vertical-align: 1px;
+    white-space: nowrap;
+  }
   .app-header > div:last-child { flex-wrap: wrap; row-gap: 8px; }
   .form-card {
     background: var(--card);
@@ -1054,14 +1068,14 @@
           <!-- H.1 -->
           <div id="h_f_h1" class="form-grid2" style="display:grid">
             <div class="input-group">
-              <label>Loại nhà</label>
+              <label>Loại nhà <span class="cite">H.1</span></label>
               <select class="tcvn-select" id="h1_type"><option value="nha-o">Nhà ở (H.1a)</option><option value="cc">Nhà công cộng (H.1b)</option></select>
             </div>
-            <div class="input-group"><label><span class="sym">B</span> Rộng cánh cửa lớn nhất (hành lang → thang / ra ngoài)</label>
+            <div class="input-group"><label><span class="sym">B</span> Rộng cánh cửa lớn nhất (hành lang → thang / ra ngoài) <span class="cite">H.1</span></label>
               <div class="input-row"><input type="number" id="h1_b" value="1.2" min="0.3" step="0.1"><span class="unit-tag">m</span></div></div>
-            <div class="input-group"><label><span class="sym">H</span> Chiều cao cửa <i style="font-weight:400">(tự kẹp 2–2.5 m)</i></label>
+            <div class="input-group"><label><span class="sym">H</span> Chiều cao cửa <i style="font-weight:400">(tự kẹp 2–2.5 m)</i> <span class="cite">H.1</span></label>
               <div class="input-row"><input type="number" id="h1_h" value="2.1" min="1" step="0.1"><span class="unit-tag">m</span></div></div>
-            <div class="input-group"><label>Số người thoát qua 1 cửa <i style="font-weight:400">(→ Kd)</i></label>
+            <div class="input-group"><label>Số người thoát qua 1 cửa <i style="font-weight:400">(→ Kd)</i> <span class="cite">H.1</span></label>
               <div class="input-row"><input type="number" id="h1_ppl" value="30" min="1" step="1"><span class="unit-tag">người</span></div></div>
             <div class="input-group"><label><span class="sym">T_sm</span> Nhiệt độ khói (đổi kg/h → m³/h)</label>
               <div class="input-row"><input type="number" id="h1_tsm" value="300" min="50" step="10"><span class="unit-tag">°C</span></div></div>
@@ -1070,14 +1084,14 @@
 
           <!-- H.2 -->
           <div id="h_f_h2" class="form-grid2" style="display:none">
-            <div class="input-group"><label><span class="sym">A</span> Diện tích phòng / bể khói</label>
+            <div class="input-group"><label><span class="sym">A</span> Diện tích phòng / bể khói <span class="cite">H.2</span></label>
               <div class="input-row"><input type="number" id="h2_a" value="800" min="10" step="50"><span class="unit-tag">m²</span></div></div>
             <div class="checkline" style="grid-column:1/-1"><input type="checkbox" id="h2_spr"><span>Có sprinkler (Pf = 12 m)</span></div>
-            <div class="input-group"><label><span class="sym">Pf</span> Chu vi đám cháy <i style="font-weight:400">(trống = tự tính H.4)</i></label>
+            <div class="input-group"><label><span class="sym">Pf</span> Chu vi đám cháy <i style="font-weight:400">(trống = tự tính H.4)</i> <span class="cite">H.4</span></label>
               <div class="input-row"><input type="number" id="h2_pf" value="" min="0" step="0.5" placeholder="tự động"><span class="unit-tag">m</span></div></div>
-            <div class="input-group"><label><span class="sym">Y</span> Từ mép dưới vùng khói đến sàn</label>
+            <div class="input-group"><label><span class="sym">Y</span> Từ mép dưới vùng khói đến sàn <span class="cite">H.2</span></label>
               <div class="input-row"><input type="number" id="h2_y" value="2.5" min="1" step="0.1"><span class="unit-tag">m</span></div></div>
-            <div class="input-group"><label><span class="sym">Ks</span> Hệ số</label>
+            <div class="input-group"><label><span class="sym">Ks</span> Hệ số <span class="cite">H.2</span></label>
               <select class="tcvn-select" id="h2_ks"><option value="1.0">1.0 — hút cơ khí</option><option value="1.2">1.2 — hút tự nhiên + sprinkler</option></select></div>
             <div class="input-group"><label><span class="sym">T_sm</span> Nhiệt độ khói</label>
               <div class="input-row"><input type="number" id="h2_tsm" value="300" min="50" step="10"><span class="unit-tag">°C</span></div></div>
@@ -1087,21 +1101,21 @@
           <!-- H.3 -->
           <div id="h_f_h3" class="form-grid2" style="display:none">
             <div class="note-box" style="grid-column:1/-1">Tính cho <b>thoát khói tự nhiên</b> qua cửa. Diện tích tương đương Ad nhập trực tiếp (chi tiết H.6–H.13).</div>
-            <div class="input-group"><label><span class="sym">Ad</span> Diện tích tương đương các cửa thoát nạn</label>
+            <div class="input-group"><label><span class="sym">Ad</span> Diện tích tương đương các cửa thoát nạn <span class="cite">H.6–H.13</span></label>
               <div class="input-row"><input type="number" id="h3_ad" value="4" min="0.5" step="0.5"><span class="unit-tag">m²</span></div></div>
-            <div class="input-group"><label><span class="sym">Hmax</span> Chiều cao cửa cao nhất (→ h0 = 0.5·Hmax + 0.2)</label>
+            <div class="input-group"><label><span class="sym">Hmax</span> Chiều cao cửa cao nhất (→ h0 = 0.5·Hmax + 0.2) <span class="cite">H.5</span></label>
               <div class="input-row"><input type="number" id="h3_hmax" value="2.4" min="1" step="0.1"><span class="unit-tag">m</span></div></div>
-            <div class="input-group"><label>Dạng chất cháy</label>
+            <div class="input-group"><label>Dạng chất cháy <span class="cite">H.5</span></label>
               <select class="tcvn-select" id="h3_fuel">
                 <option value="khi">Khí / lỏng — γ = 4 N/m³, t = 600°C</option>
                 <option value="ran">Vật rắn — γ = 5 N/m³, t = 450°C</option>
                 <option value="soi">Sợi / hành lang — γ = 6 N/m³, t = 300°C</option>
               </select></div>
-            <div class="input-group"><label>Nhiệt độ không khí ngoài <span class="sym">tv</span></label>
+            <div class="input-group"><label>Nhiệt độ không khí ngoài <span class="sym">tv</span> <span class="cite">H.5</span></label>
               <div class="input-row"><input type="number" id="h3_tv" value="35" min="0" step="1"><span class="unit-tag">°C</span></div></div>
-            <div class="input-group"><label>Vận tốc gió <i style="font-weight:400">(≤1 → lấy 0; tối đa 5)</i></label>
+            <div class="input-group"><label>Vận tốc gió <i style="font-weight:400">(≤1 → lấy 0; tối đa 5)</i> <span class="cite">H.5</span></label>
               <div class="input-row"><input type="number" id="h3_v" value="0" min="0" max="5" step="0.5"><span class="unit-tag">m/s</span></div></div>
-            <div class="input-group"><label><span class="sym">Ks</span> Hệ số</label>
+            <div class="input-group"><label><span class="sym">Ks</span> Hệ số <span class="cite">H.5</span></label>
               <select class="tcvn-select" id="h3_ks"><option value="1.0">1.0 — hút cơ khí</option><option value="1.2">1.2 — hút tự nhiên + sprinkler</option></select></div>
             <button class="btn-calc" style="grid-column:1/-1" onclick="tcvn_h3()">⚡ TÍNH G1</button>
           </div>
@@ -1109,11 +1123,11 @@
           <!-- 7.4b -->
           <div id="h_f_gv" class="form-grid2" style="display:none">
             <div class="note-box" style="grid-column:1/-1">Rò lọt qua van khói ở trạng thái đóng: <b>Gv = 40,3·√(Av·ΔP)·n</b> (7.4b).</div>
-            <div class="input-group"><label><span class="sym">Av</span> Diện tích tiết diện van</label>
+            <div class="input-group"><label><span class="sym">Av</span> Diện tích tiết diện van <span class="cite">7.4b</span></label>
               <div class="input-row"><input type="number" id="gv_av" value="0.5" min="0.05" step="0.05"><span class="unit-tag">m²</span></div></div>
-            <div class="input-group"><label><span class="sym">ΔP</span> Chênh áp hai phía van</label>
+            <div class="input-group"><label><span class="sym">ΔP</span> Chênh áp hai phía van <span class="cite">7.4b</span></label>
               <div class="input-row"><input type="number" id="gv_dp" value="300" min="10" step="10"><span class="unit-tag">Pa</span></div></div>
-            <div class="input-group"><label><span class="sym">n</span> Số van đóng</label>
+            <div class="input-group"><label><span class="sym">n</span> Số van đóng <span class="cite">7.4b</span></label>
               <div class="input-row"><input type="number" id="gv_n" value="2" min="1" step="1"><span class="unit-tag">van</span></div></div>
             <button class="btn-calc" style="grid-column:1/-1" onclick="tcvn_gv()">⚡ TÍNH Gv</button>
           </div>
@@ -1121,16 +1135,16 @@
           <!-- Bảng 1 -->
           <div id="h_f_leak" class="form-grid2" style="display:none">
             <div class="note-box" style="grid-column:1/-1">Rò lọt đường ống: <b>q = C·pt^0,65·10⁻³</b> (m³/s·m²). Cấp B áp dụng cho đường ống gió.</div>
-            <div class="input-group"><label>Cấp độ kín (Bảng 1)</label>
+            <div class="input-group"><label>Cấp độ kín (Bảng 1) <span class="cite">Bảng 1</span></label>
               <select class="tcvn-select" id="lk_cls">
                 <option value="0.027">A — thiết bị (C = 0.027)</option>
                 <option value="0.009" selected>B — ống gió (C = 0.009)</option>
                 <option value="0.003">C — ống áp cao (C = 0.003)</option>
                 <option value="0.001">D — đặc biệt (C = 0.001)</option>
               </select></div>
-            <div class="input-group"><label><span class="sym">pt</span> Áp suất tĩnh trong ống</label>
+            <div class="input-group"><label><span class="sym">pt</span> Áp suất tĩnh trong ống <span class="cite">Bảng 1</span></label>
               <div class="input-row"><input type="number" id="lk_pt" value="400" min="10" step="10"><span class="unit-tag">Pa</span></div></div>
-            <div class="input-group"><label>Diện tích bề mặt ống</label>
+            <div class="input-group"><label>Diện tích bề mặt ống <span class="cite">Bảng 1</span></label>
               <div class="input-row"><input type="number" id="lk_area" value="120" min="1" step="5"><span class="unit-tag">m²</span></div></div>
             <button class="btn-calc" style="grid-column:1/-1" onclick="tcvn_leak()">⚡ TÍNH RÒ LỌT</button>
           </div>
@@ -1153,14 +1167,14 @@
         <div class="card-header">💨 Cấp khí bù (Phụ lục G.7.4)</div>
         <div class="card-body">
           <div class="form-grid2">
-            <div class="input-group"><label><span class="sym">Gsm</span> Khối lượng khói thải</label>
+            <div class="input-group"><label><span class="sym">Gsm</span> Khối lượng khói thải <span class="cite">PL.H</span></label>
               <div class="input-row"><input type="number" id="mu_gsm" value="49000" min="100" step="1000"><span class="unit-tag">kg/h</span></div>
               <span class="hint">= G1/G từ Phụ lục H</span></div>
-            <div class="input-group"><label><span class="sym">Ta</span> Nhiệt độ khí cấp</label>
+            <div class="input-group"><label><span class="sym">Ta</span> Nhiệt độ khí cấp <span class="cite">G.11</span></label>
               <div class="input-row"><input type="number" id="mu_ta" value="35" min="0" step="1"><span class="unit-tag">°C</span></div></div>
-            <div class="input-group"><label><span class="sym">Tsm</span> Nhiệt độ khói thải</label>
+            <div class="input-group"><label><span class="sym">Tsm</span> Nhiệt độ khói thải <span class="cite">G.12</span></label>
               <div class="input-row"><input type="number" id="mu_tsm" value="300" min="50" step="10"><span class="unit-tag">°C</span></div></div>
-            <div class="input-group"><label><span class="sym">n</span> Hệ số mất cân bằng</label>
+            <div class="input-group"><label><span class="sym">n</span> Hệ số mất cân bằng <span class="cite">G.10</span></label>
               <div class="input-row"><input type="number" id="mu_n" value="-0.11" min="-0.3" max="0.3" step="0.01"><span class="unit-tag">—</span></div>
               <span class="hint">−0.11 ≈ cấp 90% (G.7.1: 85–95%)</span></div>
           </div>
@@ -1171,20 +1185,20 @@
         <div class="card-header">🌀 Tăng áp thang / khoang đệm (Đ.6.8.6 · D.12)</div>
         <div class="card-body">
           <div class="form-grid2">
-            <div class="input-group"><label>Số tầng tăng áp</label>
+            <div class="input-group"><label>Số tầng tăng áp <span class="cite">6.8.6</span></label>
               <div class="input-row"><input type="number" id="pr_floors" value="20" min="1" step="1"><span class="unit-tag">tầng</span></div></div>
-            <div class="input-group"><label>Số cửa / tầng</label>
+            <div class="input-group"><label>Số cửa / tầng <span class="cite">6.8.6</span></label>
               <div class="input-row"><input type="number" id="pr_perfloor" value="2" min="1" step="1"><span class="unit-tag">cửa</span></div></div>
-            <div class="input-group"><label>Cửa mở <b>đồng thời</b></label>
+            <div class="input-group"><label>Cửa mở <b>đồng thời</b> <span class="cite">6.8.6b</span></label>
               <div class="input-row"><input type="number" id="pr_open" value="2" min="1" step="1"><span class="unit-tag">cửa</span></div></div>
-            <div class="input-group"><label><span class="sym">A_cửa</span> Diện tích 1 cửa</label>
+            <div class="input-group"><label><span class="sym">A_cửa</span> Diện tích 1 cửa <span class="cite">6.8.6b</span></label>
               <div class="input-row"><input type="number" id="pr_adoor" value="1.89" min="0.5" step="0.05"><span class="unit-tag">m²</span></div></div>
-            <div class="input-group"><label><span class="sym">v</span> Vận tốc qua cửa mở</label>
+            <div class="input-group"><label><span class="sym">v</span> Vận tốc qua cửa mở <span class="cite">6.8.6b</span></label>
               <div class="input-row"><input type="number" id="pr_v" value="1.3" min="0.5" step="0.1"><span class="unit-tag">m/s</span></div>
               <span class="hint">≥ 1.3 m/s (Đ.6.8.6b)</span></div>
-            <div class="input-group"><label><span class="sym">A_khe</span> Khe hở 1 cửa đóng</label>
+            <div class="input-group"><label><span class="sym">A_khe</span> Khe hở 1 cửa đóng <span class="cite">6.8.6b</span></label>
               <div class="input-row"><input type="number" id="pr_agap" value="0.02" min="0.005" step="0.005"><span class="unit-tag">m²</span></div></div>
-            <div class="input-group"><label><span class="sym">ΔP</span> Áp suất dư</label>
+            <div class="input-group"><label><span class="sym">ΔP</span> Áp suất dư <span class="cite">D.12</span></label>
               <div class="input-row"><input type="number" id="pr_dp" value="30" min="10" max="60" step="5"><span class="unit-tag">Pa</span></div>
               <span class="hint">20–50 Pa (D.12)</span></div>
             <div class="input-group"><label>Dự phòng rò lọt HT</label>
@@ -1234,12 +1248,12 @@
             <div class="input-row"><input type="number" id="du_q" value="15000" min="100" step="500"><span class="unit-tag">m³/h</span></div></div>
           <div class="input-group"><label>Tiết diện</label>
             <select class="tcvn-select" id="du_shape"><option value="rect">Chữ nhật</option><option value="round">Tròn</option></select></div>
-          <div class="input-group"><label>Phương pháp</label>
+          <div class="input-group"><label>Phương pháp <span class="cite">SMACNA</span></label>
             <select class="tcvn-select" id="du_method">
               <option value="friction">Đẳng ma sát (Δp/L mục tiêu)</option>
               <option value="velocity">Vận tốc (v mục tiêu)</option>
             </select></div>
-          <div class="input-group"><label>Mục tiêu</label>
+          <div class="input-group"><label>Mục tiêu <span class="cite">SMACNA</span></label>
             <div class="input-row"><input type="number" id="du_target" value="1.0" min="0.2" step="0.1"><span class="unit-tag" id="du_target_u">Pa/m</span></div></div>
           <div class="input-group"><label>Tỷ lệ W/H (chữ nhật)</label>
             <div class="input-row"><input type="number" id="du_ratio" value="1.5" min="1" max="4" step="0.1"><span class="unit-tag">—</span></div>
@@ -1255,7 +1269,7 @@
           <div class="input-group"><label>Chiều dài đoạn ống</label>
             <div class="input-row"><input type="number" id="du_len" value="25" min="1" step="1"><span class="unit-tag">m</span></div></div>
           </div>
-          <div class="section-title" style="margin-top:6px">Phụ kiện (số lượng)</div>
+          <div class="section-title" style="margin-top:6px">Phụ kiện (số lượng) <span class="cite">SMACNA</span></div>
           <div id="du_fit" class="fit-grid"></div>
           <button class="btn-calc" onclick="duct_dp()">⚡ TÍNH ΔP ĐOẠN ỐNG</button>
           <div class="note-box" style="margin-top:4px">TCVN 232:1999 — chế tạo/lắp đặt: sai số cạnh ≤300 mm: ±1 mm, &gt;300 mm: ±2 mm; ngoặt tròn R = (1–1.5)D; chạc ba góc kẹp 15–60°; ngoặt chữ nhật A ≥ 500 mm đặt lá hướng dòng.</div>
